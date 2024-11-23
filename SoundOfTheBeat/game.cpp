@@ -6,6 +6,7 @@
 #define SPEED 0.001
 #define r 0.08
 #define DEATH_RAY_Y -0.8
+#define DEATH_RAY_FRAMES 200
 
 struct Ball {
     float x, y;
@@ -40,7 +41,7 @@ void updateBalls() {
         if (it->y <= DEATH_RAY_Y && !it->hit) {   // => miss
             it->hit = true;
             deathRayX = it->x ;
-            deathRayDuration = 120;
+            deathRayDuration = DEATH_RAY_FRAMES;
             score -= 5;
             std::cout << score << "\n";
         }
@@ -95,7 +96,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int basicShader, int gameMode) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int gameMode) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -103,7 +104,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int basicShader, int 
     Treba nam 2 * CRES brojeva za X i Y koordinate, gde je CRES zapravo broj temena na kruznici (CRES 6 = sestougao)
     Pored toga nam trebaju jos dva temena - centar i ponovljeno teme ugla 0 (da bi se krug pravilno zatvorio)
     */
-    float vertices[(CRES + 2) * 2 + 4];
+    float vertices[(CRES + 2) * 2 + 8];
 
     vertices[0] = 0; //Centar X0
     vertices[1] = 0; //Centar Y0
@@ -113,11 +114,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int basicShader, int 
         vertices[2 + 2 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES)); //Yi
     }
     int rayInd = (CRES + 2) * 2;
-    int rayEndX = rayInd + 2;
+    int rayEndXAlpha = rayInd + 2;
+    int rayEndXBeta = rayInd + 6;
+    //ray effect
     vertices[rayInd] = -1.0;     // x1
     vertices[rayInd + 1] = DEATH_RAY_Y; // y1
-    vertices[rayEndX] = 1.0;  // x2
-    vertices[rayEndX + 1] = DEATH_RAY_Y;  // y2
+    vertices[rayInd + 2] = 1.0;  // x2
+    vertices[rayInd + 3] = DEATH_RAY_Y;  // y2
+    //concentrated ray
+    vertices[rayInd + 4] = -1.0;     // x1
+    vertices[rayInd + 5] = DEATH_RAY_Y; // y1
+    vertices[rayInd + 6] = 1.0;  // x2
+    vertices[rayInd + 7] = DEATH_RAY_Y;  // y2
 
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -142,9 +150,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int basicShader, int 
     glUniform1f(uAspectLoc, aspectRatio);
     glUseProgram(0);
 
+    //glUseProgram(rayShader);
+    unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
+
 
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glLineWidth(8.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
@@ -190,15 +200,24 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int basicShader, int 
         }
         glUseProgram(0);
 
-        glUseProgram(basicShader);
-        glPointSize(5);
         if (deathRayDuration > 0) {
+            glUseProgram(rayShader);
             deathRayDuration--;
-            vertices[rayEndX] = deathRayX;
-            glBufferSubData(GL_ARRAY_BUFFER, rayInd * sizeof(float), 4 * sizeof(float), &vertices[rayInd]);
+            
+            vertices[rayEndXAlpha] = deathRayX;
+            vertices[rayEndXBeta] = deathRayX;
+            glBufferSubData(GL_ARRAY_BUFFER, rayInd * sizeof(float), 8 * sizeof(float), &vertices[rayInd]);
+
+            glLineWidth(4.0);
+            glUniform1f(uAlphaLoc, 1.0);
             glDrawArrays(GL_LINES, rayInd / 2, 2);
+            
+            glLineWidth(10.0);
+            glUniform1f(uAlphaLoc, 0.2);
+            glDrawArrays(GL_LINES, rayInd / 2 + 2, 2);
+            
+            glUseProgram(0);
         }
-        glUseProgram(0);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
