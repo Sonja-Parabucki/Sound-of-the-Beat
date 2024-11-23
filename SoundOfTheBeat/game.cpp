@@ -10,9 +10,15 @@ struct Ball {
     float x, y;
     //vreme kad da se pojavi i kad treba da se stisne
     //svaka svoju brzinu?
+    bool hit;
+    float inflation;
 };
 
 std::vector<Ball> balls;
+int score;
+int wWidth, wHeight;
+int mode;
+
 
 float randomX() {
     float limit = 1 - r;
@@ -20,14 +26,19 @@ float randomX() {
 }
 
 void generateBall() {
-    Ball ball{randomX(), 1.0};
+    Ball ball{randomX(), 1.0, false, 1};
     balls.push_back(ball);
 }
 
 void updateBalls() {
     for (auto it = balls.begin(); it != balls.end();) {
         it->y -= SPEED;
+        if (it->hit) {
+            it->inflation *= 0.98;
+        }
         if (it->y < -1.0 - r)
+            //todo: miss animation
+            //fali provera da li je hit (posto ih ne brisem gore)
             it = balls.erase(it);
         else
             ++it;
@@ -35,8 +46,46 @@ void updateBalls() {
 }
 
 
+void checkShot(GLFWwindow* window) {
 
-int game(GLFWwindow* window, unsigned int shader) {
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;  // Convert to range [-1, 1]
+    float ndcY = 1.0f - 2.0f * (mouseY / wHeight);
+
+    for (auto it = balls.begin(); it != balls.end(); ++it) {
+        if (it->hit) {
+            continue;
+        }
+        if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
+            score += 10;
+            //todo: update score display
+            std::cout << score << "\n";
+            it->hit = true;
+            return;
+        }
+    }
+}
+
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+    if (mode == 0) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT)
+            checkShot(window);
+    }
+    else {
+        //todo
+    }
+
+}
+
+
+
+
+int game(GLFWwindow* window, unsigned int shader, int gameMode) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -70,16 +119,21 @@ int game(GLFWwindow* window, unsigned int shader) {
     unsigned int uRLoc = glGetUniformLocation(shader, "uR");
     unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
     unsigned int uAspectLoc = glGetUniformLocation(shader, "uAspect");
-    glUniform2f(uRLoc, 1.0, 1.0);
-    glUniform3f(uColLoc, 0.0, 0.0, 0.0);
+    unsigned int inflationLoc = glGetUniformLocation(shader, "uInflation");
+    //glUniform2f(uRLoc, 1.0, 1.0);
+    //glUniform3f(uColLoc, 0.0, 0.0, 0.0);
 
     //aspect-ratio of the window
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    float aspectRatio = (float)height / width;
+    glfwGetFramebufferSize(window, &wWidth, &wHeight);
+    float aspectRatio = (float)wHeight / wWidth;
     glUniform1f(uAspectLoc, aspectRatio);
 
-    int score = 10;
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+    mode = gameMode;
+
+    score = 10;
+    balls.clear();
     //render petlja
     glClearColor(0.1, 0.1, 0.1, 1.0);
 
@@ -111,6 +165,7 @@ int game(GLFWwindow* window, unsigned int shader) {
 
         glUniform3f(uColLoc, 1.0, 1.0, 1.0);
         for (const auto& ball : balls) {
+            glUniform1f(inflationLoc, ball.inflation);
             glUniform2f(uRLoc, ball.x, ball.y);
             glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(circle) / (2 * sizeof(float)));
         }

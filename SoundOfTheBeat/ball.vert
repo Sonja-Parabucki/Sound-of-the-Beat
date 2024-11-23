@@ -7,9 +7,14 @@ out vec4 chCol; //Izlazni kanal kroz koji saljemo boju do fragment sejdera
 
 uniform vec2 uR;
 uniform float uAspect;     // Aspect ratio
+uniform float uInflation;
 
 void main()
 {
-	gl_Position = vec4(inPos.x * uAspect + uR[0], inPos.y + uR[1], 0.0, 1.0); //gl_Position je predefinisana promenljiva za pozicije u koju stavljamo nase koordinate. Definisana je kao vec4 pa zbog toga konvertujemo
+	//gl_Position je predefinisana promenljiva za pozicije u koju stavljamo nase koordinate. Definisana je kao vec4 pa zbog toga konvertujemo
+	gl_Position = vec4((inPos.x * uAspect * uInflation + uR[0]),
+						(inPos.y * uInflation + uR[1]),
+						0.0,
+						1.0); 
 	chCol = inCol;
 }
