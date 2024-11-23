@@ -12,3 +12,8 @@ unsigned int createShader(const char* vsSource, const char* fsSource);
 unsigned int windowWidth();
 
 unsigned int windowHeight();
+
+struct Game {
+	int mode;
+	int next;
+};

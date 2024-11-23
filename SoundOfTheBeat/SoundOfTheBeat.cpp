@@ -38,16 +38,16 @@ int main()
     //todo: ucita najbolji rezultat i poslednji rezultat iz fajla
     int highScore = 0;
     int score;
-    int mode = 0;
     while (true) {
-        if (menu(window, basicShader) == 0) {
+        Game gameInstance = menu(window, basicShader);
+        if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
 
             glfwTerminate();
             return 0;
         }
-        score = game(window, ballShader, rayShader, mode);
+        score = game(window, ballShader, rayShader, gameInstance.mode);
 
         if (score > highScore) {
             highScore = score;

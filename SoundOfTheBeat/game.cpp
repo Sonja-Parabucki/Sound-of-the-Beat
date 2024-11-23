@@ -6,7 +6,7 @@
 #define SPEED 0.001
 #define r 0.08
 #define DEATH_RAY_Y -0.8
-#define DEATH_RAY_FRAMES 200
+#define DEATH_RAY_FRAMES 120
 
 struct Ball {
     float x, y;
@@ -14,6 +14,7 @@ struct Ball {
     //svaka svoju brzinu?
     bool hit;
     float inflation;
+    bool red;
 };
 
 std::vector<Ball> balls;
@@ -30,7 +31,9 @@ float randomX() {
 }
 
 void generateBall() {
-    Ball ball{randomX(), 1.0, false, 1};
+    Ball ball{ randomX(), 1.0, false, 1 };
+    if (mode == 1)
+        ball.red = (int)glfwGetTime() % 2 == 0;
     balls.push_back(ball);
 }
 
@@ -40,7 +43,7 @@ void updateBalls() {
         
         if (it->y <= DEATH_RAY_Y && !it->hit) {   // => miss
             it->hit = true;
-            deathRayX = it->x ;
+            deathRayX = it->x;
             deathRayDuration = DEATH_RAY_FRAMES;
             score -= 5;
             std::cout << score << "\n";
@@ -57,8 +60,7 @@ void updateBalls() {
 }
 
 
-void checkShot(GLFWwindow* window) {
-
+void checkShot(GLFWwindow* window, bool leftClick) {
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
@@ -68,6 +70,9 @@ void checkShot(GLFWwindow* window) {
         if (it->hit) {
             continue;
         }
+        if (mode == 1 && it->red != leftClick)
+            continue;
+
         if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
             score += 10;
             //todo: update score display
@@ -79,18 +84,11 @@ void checkShot(GLFWwindow* window) {
 }
 
 
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (action != GLFW_PRESS)
-        return;
-    if (mode == 0) {
-        if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT)
-            checkShot(window);
-    }
-    else {
-        //todo
-    }
-
+    if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS)
+            checkShot(window, button == GLFW_MOUSE_BUTTON_LEFT);
 }
 
 
@@ -106,8 +104,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
     */
     float vertices[(CRES + 2) * 2 + 8];
 
-    vertices[0] = 0; //Centar X0
-    vertices[1] = 0; //Centar Y0
+    vertices[0] = 0;
+    vertices[1] = 0;
     for (int i = 0; i <= CRES; i++)
     {
         vertices[2 + 2 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES)); //Xi (Matematicke funkcije rade sa radijanima)
@@ -116,12 +114,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
     int rayInd = (CRES + 2) * 2;
     int rayEndXAlpha = rayInd + 2;
     int rayEndXBeta = rayInd + 6;
-    //ray effect
+    //concentrated ray 
     vertices[rayInd] = -1.0;     // x1
     vertices[rayInd + 1] = DEATH_RAY_Y; // y1
     vertices[rayInd + 2] = 1.0;  // x2
     vertices[rayInd + 3] = DEATH_RAY_Y;  // y2
-    //concentrated ray
+    //ray effect
     vertices[rayInd + 4] = -1.0;     // x1
     vertices[rayInd + 5] = DEATH_RAY_Y; // y1
     vertices[rayInd + 6] = 1.0;  // x2
@@ -150,7 +148,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
     glUniform1f(uAspectLoc, aspectRatio);
     glUseProgram(0);
 
-    //glUseProgram(rayShader);
     unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
 
 
@@ -170,7 +167,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
 
     int spawnTimer = 0;
     
-    while (score >= 0) {
+    while (score > 0) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             //todo: pauziraj
@@ -185,7 +182,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
         int t = glfwGetTime();
         //std::cout << t << ' ';
 
-        if (t - spawnTimer > 2) {
+        if (t - spawnTimer >= 1) {
             generateBall();
             spawnTimer = t;
         }
@@ -194,6 +191,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
         glUseProgram(shader);
         glUniform3f(uColLoc, 1.0, 1.0, 1.0);
         for (const auto& ball : balls) {
+
+            if (mode == 1) {
+                if (ball.red) glUniform3f(uColLoc, 1.0, 0.0, 0.0);
+                else glUniform3f(uColLoc, 0.0, 0.0, 1.0);
+            }
+
             glUniform1f(inflationLoc, ball.inflation);
             glUniform2f(uRLoc, ball.x, ball.y);
             glDrawArrays(GL_TRIANGLE_FAN, 0, CRES +2);

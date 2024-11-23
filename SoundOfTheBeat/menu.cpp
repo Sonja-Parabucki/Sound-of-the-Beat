@@ -3,7 +3,7 @@
 //klik na SPACE => pocinje igru
 //klik na [L]eave => izlaz iz igre
 
-int menu(GLFWwindow* window, unsigned int shader) {
+Game menu(GLFWwindow* window, unsigned int shader) {
 
     float vertices[] =
     {  //X    Y       R    G    B    A
@@ -37,6 +37,7 @@ int menu(GLFWwindow* window, unsigned int shader) {
     glClearColor(0.0, 0.0, 0.1, 1.0);
 
     int next = -1;
+    int mode = 0;
     while (next == -1) {
         if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         {
@@ -46,6 +47,14 @@ int menu(GLFWwindow* window, unsigned int shader) {
         if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
         {
             next = 1;
+        }
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        {
+            mode = 0;
+        }
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        {
+            mode = 1;
         }
         glClear(GL_COLOR_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, 3);   //_TRIANGLE_STRIP spaja 3. na prethodna 2
@@ -59,5 +68,5 @@ int menu(GLFWwindow* window, unsigned int shader) {
     glUseProgram(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
-    return next;
+    return Game{mode, next};
 }
