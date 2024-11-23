@@ -140,6 +140,7 @@
     <None Include="basic.frag" />
     <None Include="basic.vert" />
     <None Include="packages.config" />
+    <None Include="ray.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />

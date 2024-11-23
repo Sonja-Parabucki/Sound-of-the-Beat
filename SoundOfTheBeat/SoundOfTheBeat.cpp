@@ -32,6 +32,8 @@ int main()
 
     unsigned int basicShader = createShader("basic.vert", "basic.frag"); // Napravi objedinjeni sejder program
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
+    unsigned int rayShader = createShader("basic.vert", "ray.frag");
+
 
     //todo: ucita najbolji rezultat i poslednji rezultat iz fajla
     int highScore = 0;
@@ -45,7 +47,7 @@ int main()
             glfwTerminate();
             return 0;
         }
-        score = game(window, ballShader, mode);
+        score = game(window, ballShader, rayShader, mode);
 
         if (score > highScore) {
             highScore = score;
