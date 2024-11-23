@@ -158,6 +158,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
 
     mode = gameMode;
     score = 10;
+    bool endGame = false;
     balls.clear();
     //render petlja
     glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -167,7 +168,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
 
     int spawnTimer = 0;
     
-    while (score > 0) {
+    while (score > 0 && !endGame) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             //todo: pauziraj
@@ -175,7 +176,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
         {
             //trenutno povratak na meni
-            score  = -1;
+            endGame = true;
         }
         glClear(GL_COLOR_BUFFER_BIT);
 

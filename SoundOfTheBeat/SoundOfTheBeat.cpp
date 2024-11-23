@@ -1,12 +1,21 @@
-
+#include <fstream>
+#include <iostream>
 #include "menu.h"
 #include "game.h"
-
-#define CRES 30 // Circle Resolution = Rezolucija kruga
 
 
 int main()
 {
+    std::string path = "scores.txt";
+    int highScore = 0;
+    std::ifstream fin(path);
+    if (fin && fin.is_open()) {
+        if (!(fin >> highScore))
+            highScore = 0;
+        fin.close();
+    }
+    std::cout << highScore << " = HIGH SCORE\n";
+
     if (!glfwInit())
     {
         std::cout << "GLFW Biblioteka se nije ucitala! :(\n";
@@ -34,10 +43,7 @@ int main()
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
 
-
-    //todo: ucita najbolji rezultat i poslednji rezultat iz fajla
-    int highScore = 0;
-    int score;
+    int score = 0;
     while (true) {
         Game gameInstance = menu(window, basicShader);
         if (gameInstance.next == 0) {
@@ -48,10 +54,13 @@ int main()
             return 0;
         }
         score = game(window, ballShader, rayShader, gameInstance.mode);
+        std::cout << "SCORE: " << score << std::endl;
 
         if (score > highScore) {
             highScore = score;
-            //todo: upise u fajl
+            std::ofstream fout(path);
+            fout << highScore << std::endl;
+            fout.close();
         }
     }
 
