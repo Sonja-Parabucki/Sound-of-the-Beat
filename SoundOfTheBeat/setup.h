@@ -35,6 +35,5 @@ struct GameState {
     int mode;
     double time;
     std::vector<Ball> balls;
-    int next;
 };
 

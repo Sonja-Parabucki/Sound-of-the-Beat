@@ -7,7 +7,7 @@
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define DEATH_RAY_Y -0.8
-#define DEATH_RAY_FRAMES 10
+#define DEATH_RAY_FRAMES 6
 
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
@@ -156,7 +156,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     score = gameState.score;
     balls = gameState.balls;
     glfwSetTime(gameState.time);
-    gameState.next = 0;
+    int next = 0;
 
     //render petlja
     glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -174,7 +174,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
             gameState.score = score;
             gameState.balls = balls;
             gameState.time = glfwGetTime();
-            gameState.next = 1;
+            next = 1;
             endGame = true;
             break;
         }
@@ -226,7 +226,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
 
         //limit FPS
         renderTime = glfwGetTime() - renderStart;
-        std::cout << renderTime << std::endl;
         if (renderTime < FRAME_TIME) {
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
         }
@@ -237,5 +236,5 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     glBindVertexArray(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
-    return gameState.next;
+    return next;
 }
