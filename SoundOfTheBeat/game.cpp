@@ -8,14 +8,7 @@
 #define DEATH_RAY_Y -0.8
 #define DEATH_RAY_FRAMES 120
 
-struct Ball {
-    float x, y;
-    //vreme kad da se pojavi i kad treba da se stisne
-    //svaka svoju brzinu?
-    bool hit;
-    float inflation;
-    bool red;
-};
+
 
 std::vector<Ball> balls;
 int score;
@@ -94,7 +87,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int gameMode) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameState& gameState) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -156,34 +149,34 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
     glEnable(GL_BLEND);
 
 
-    mode = gameMode;
-    score = 10;
-    bool endGame = false;
-    balls.clear();
+    mode = gameState.mode;
+    score = gameState.score;
+    balls = gameState.balls;
+    glfwSetTime(gameState.time);
+    gameState.next = 0;
+
     //render petlja
     glClearColor(0.1, 0.1, 0.1, 1.0);
 
     int i = 0;
-    glfwSetTime(0);
+    bool endGame = false;
 
     int spawnTimer = 0;
     
     while (score > 0 && !endGame) {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
-            //todo: pauziraj
-        }
-        if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-        {
-            //trenutno povratak na meni
+            gameState.score = score;
+            gameState.balls = balls;
+            gameState.time = glfwGetTime();
+            gameState.next = 1;
             endGame = true;
+            break;
         }
         glClear(GL_COLOR_BUFFER_BIT);
 
         int t = glfwGetTime();
-        //std::cout << t << ' ';
-
-        if (t - spawnTimer >= 1) {
+        if (t - spawnTimer >= 2) {
             generateBall();
             spawnTimer = t;
         }
@@ -232,5 +225,5 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, int ga
     glBindVertexArray(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
-    return score;
+    return gameState.next;
 }

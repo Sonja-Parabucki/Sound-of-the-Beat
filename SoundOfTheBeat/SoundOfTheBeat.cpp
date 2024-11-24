@@ -1,7 +1,7 @@
-#include <fstream>
 #include <iostream>
 #include "menu.h"
 #include "game.h"
+#include "pause.h"
 
 
 int main()
@@ -39,11 +39,11 @@ int main()
         return 3;
     }
 
-    unsigned int basicShader = createShader("basic.vert", "basic.frag"); // Napravi objedinjeni sejder program
+    unsigned int basicShader = createShader("basic.vert", "basic.frag");
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
 
-    int score = 0;
+    GameState gameState;
     while (true) {
         Game gameInstance = menu(window, basicShader);
         if (gameInstance.next == 0) {
@@ -53,11 +53,20 @@ int main()
             glfwTerminate();
             return 0;
         }
-        score = game(window, ballShader, rayShader, gameInstance.mode);
-        std::cout << "SCORE: " << score << std::endl;
+        //start new game
+        gameState = GameState{ 10, gameInstance.mode, 0, {}, 0 };
+        while (true) {
+            if (game(window, ballShader, rayShader, gameState) == 1) {
+                if (pause(window, basicShader))
+                    break; //back to menu
+            }
+            else break; //finished the song till the end
+        }
 
-        if (score > highScore) {
-            highScore = score;
+
+        std::cout << "SCORE: " << gameState.score << std::endl;
+        if (gameState.score > highScore) {
+            highScore = gameState.score;
             std::ofstream fout(path);
             fout << highScore << std::endl;
             fout.close();

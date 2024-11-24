@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="game.cpp" />
     <ClCompile Include="menu.cpp" />
+    <ClCompile Include="pause.cpp" />
     <ClCompile Include="setup.cpp" />
     <ClCompile Include="SoundOfTheBeat.cpp" />
   </ItemGroup>
@@ -145,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="game.h" />
     <ClInclude Include="menu.h" />
+    <ClInclude Include="pause.h" />
     <ClInclude Include="setup.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

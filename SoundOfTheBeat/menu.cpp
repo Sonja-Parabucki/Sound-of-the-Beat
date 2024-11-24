@@ -68,5 +68,5 @@ Game menu(GLFWwindow* window, unsigned int shader) {
     glUseProgram(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
-    return Game{mode, next};
+    return Game{ mode, next };
 }
