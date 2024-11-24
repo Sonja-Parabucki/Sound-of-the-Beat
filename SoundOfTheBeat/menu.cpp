@@ -3,6 +3,10 @@
 //klik na SPACE => pocinje igru
 //klik na [L]eave => izlaz iz igre
 
+const double FPS = 60.0;
+const double FRAME_TIME = 1.0 / FPS;
+
+
 Game menu(GLFWwindow* window, unsigned int shader) {
 
     float vertices[] =
@@ -38,7 +42,11 @@ Game menu(GLFWwindow* window, unsigned int shader) {
 
     int next = -1;
     int mode = 0;
+
+    double renderStart, renderTime;
     while (next == -1) {
+        renderStart = glfwGetTime();
+
         if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         {
             next = 0;
@@ -63,6 +71,12 @@ Game menu(GLFWwindow* window, unsigned int shader) {
                                             //POINTS (glPointSize(5);)
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        //limit FPS
+        renderTime = glfwGetTime() - renderStart;
+        if (renderTime < FRAME_TIME) {
+            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
+        }
     }
     glBindVertexArray(0);
     glUseProgram(0);

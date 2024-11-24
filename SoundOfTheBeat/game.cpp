@@ -3,11 +3,14 @@
 
 
 #define CRES 30 // Rezolucija kruga
-#define SPEED 0.001
+#define SPEED 0.01
+#define INFLATION_SPEED 0.6
 #define r 0.08
 #define DEATH_RAY_Y -0.8
-#define DEATH_RAY_FRAMES 120
+#define DEATH_RAY_FRAMES 10
 
+const double FPS = 60.0;
+const double FRAME_TIME = 1.0 / FPS;
 
 
 std::vector<Ball> balls;
@@ -43,7 +46,7 @@ void updateBalls() {
         }
 
         if (it->hit)
-            it->inflation *= 0.98;
+            it->inflation *= INFLATION_SPEED;
 
         if (it->y < -1.0 - r)   //fell off from the screen
             it = balls.erase(it);
@@ -162,8 +165,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     bool endGame = false;
 
     int spawnTimer = 0;
-    
+    double renderStart, renderTime;
     while (score > 0 && !endGame) {
+        renderStart = glfwGetTime();
+
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             gameState.score = score;
@@ -176,7 +181,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
         glClear(GL_COLOR_BUFFER_BIT);
 
         int t = glfwGetTime();
-        if (t - spawnTimer >= 2) {
+        if (t - spawnTimer >= 1) {
             generateBall();
             spawnTimer = t;
         }
@@ -218,6 +223,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
         
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        //limit FPS
+        renderTime = glfwGetTime() - renderStart;
+        std::cout << renderTime << std::endl;
+        if (renderTime < FRAME_TIME) {
+            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
+        }
     }
 
     glUseProgram(0);

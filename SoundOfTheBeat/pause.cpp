@@ -1,5 +1,8 @@
 #include "pause.h"
 
+const double FPS = 60.0;
+const double FRAME_TIME = 1.0 / FPS;
+
 bool pause(GLFWwindow* window, unsigned int shader) {
     float vertices[] =
     {  //X    Y       R    G    B    A
@@ -30,8 +33,11 @@ bool pause(GLFWwindow* window, unsigned int shader) {
     //render petlja
     glClearColor(0.0, 0.1, 0.0, 1.0);
 
+    double renderStart, renderTime;
     bool backToMenu = false;
     while (true) {
+        renderStart = glfwGetTime();
+
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             backToMenu = true;
@@ -46,6 +52,12 @@ bool pause(GLFWwindow* window, unsigned int shader) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        //limit FPS
+        renderTime = glfwGetTime() - renderStart;
+        if (renderTime < FRAME_TIME) {
+            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
+        }
     }
     glBindVertexArray(0);
     glUseProgram(0);
