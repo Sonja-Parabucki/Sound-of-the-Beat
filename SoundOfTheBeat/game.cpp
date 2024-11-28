@@ -8,6 +8,7 @@
 #define r 0.08
 #define DEATH_RAY_Y -0.8
 #define DEATH_RAY_FRAMES 6
+#define LIMIT 0.8
 
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
@@ -22,8 +23,7 @@ float deathRayX;
 
 
 float randomX() {
-    float limit = 1 - r;
-    return -limit + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (limit*2)));
+    return -LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (LIMIT*2)));
 }
 
 void generateBall() {
@@ -88,9 +88,59 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
+void renderLogo(unsigned int texShader) {
+    float logo[] =
+    {   //X        Y      S    T 
+        -LIMIT,  LIMIT,  0.0, 1.0,
+        -LIMIT, -LIMIT,  0.0, 0.0,
+         LIMIT, -LIMIT,  1.0, 0.0,
+         LIMIT,  LIMIT,  1.0, 1.0,
+    };
+    unsigned int stride = 4 * sizeof(float);
+
+    unsigned int VAOtex;
+    glGenVertexArrays(1, &VAOtex);
+    glBindVertexArray(VAOtex);
+
+    unsigned int VBOtex;
+    glGenBuffers(1, &VBOtex);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(logo), logo, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);  //X, Y
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));    // S, T
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameState& gameState) {
+void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO) {
+    glGenVertexArrays(1, VAO);
+    glBindVertexArray(*VAO);
+
+    glGenBuffers(1, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
+    glEnableVertexAttribArray(0);
+
+    if (stride == 4 * sizeof(float)) {
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float))); //texture (s, t)
+        glEnableVertexAttribArray(1);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+
+
+
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -120,7 +170,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     vertices[rayInd + 5] = DEATH_RAY_Y; // y1
     vertices[rayInd + 6] = 1.0;  // x2
     vertices[rayInd + 7] = DEATH_RAY_Y;  // y2
+    
+    unsigned int VAO, VBO;
+    initVABO(vertices, sizeof(vertices), 2 * sizeof(float), &VAO, &VBO);
 
+
+
+    /*
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -129,8 +185,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);//(indeks pokazivaca, broj komponenti atributa, tip komponenti atributa, da li je potrebno normalizovati podatke (nama uvek GL_FALSE), korak/velicina temena, pomeraj sa pocetka jednog temena do komponente za ovaj atribut - mora biti (void*))  
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    */
 
     glUseProgram(shader);
     unsigned int uRLoc = glGetUniformLocation(shader, "uR");
@@ -169,6 +226,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
     while (score > 0 && !endGame) {
         renderStart = glfwGetTime();
 
+        //pause game
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             gameState.score = score;
@@ -180,12 +238,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
         }
         glClear(GL_COLOR_BUFFER_BIT);
 
+        //generate new balls
         int t = glfwGetTime();
         if (t - spawnTimer >= 1) {
             generateBall();
             spawnTimer = t;
         }
+
+        //draw balls
         updateBalls();
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         glUseProgram(shader);
         glUniform3f(uColLoc, 1.0, 1.0, 1.0);
@@ -202,6 +266,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
         }
         glUseProgram(0);
 
+        //death ray definition and rendering
         if (deathRayDuration > 0) {
             glUseProgram(rayShader);
             deathRayDuration--;
@@ -220,6 +285,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
             
             glUseProgram(0);
         }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -231,9 +298,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, GameSt
         }
     }
 
-    glUseProgram(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
     return next;

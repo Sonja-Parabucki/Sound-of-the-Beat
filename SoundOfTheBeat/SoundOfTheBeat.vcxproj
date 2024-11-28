@@ -134,6 +134,7 @@
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="setup.cpp" />
     <ClCompile Include="SoundOfTheBeat.cpp" />
+    <ClCompile Include="stb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ball.frag" />
@@ -142,12 +143,16 @@
     <None Include="basic.vert" />
     <None Include="packages.config" />
     <None Include="ray.frag" />
+    <None Include="tex.frag" />
+    <None Include="tex.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="pause.h" />
     <ClInclude Include="setup.h" />
+    <ClInclude Include="stb.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

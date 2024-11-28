@@ -42,6 +42,7 @@ int main()
     unsigned int basicShader = createShader("basic.vert", "basic.frag");
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
+    unsigned int texShader = createShader("tex.vert", "tex.frag");
 
     GameState gameState;
     while (true) {
@@ -49,6 +50,8 @@ int main()
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
+            glDeleteProgram(rayShader);
+            glDeleteProgram(texShader);
 
             glfwTerminate();
             return 0;
@@ -56,7 +59,7 @@ int main()
         //start new game
         gameState = GameState{ 10, gameInstance.mode, 0, {} };
         while (true) {
-            if (game(window, ballShader, rayShader, gameState) == 1) {
+            if (game(window, ballShader, rayShader, texShader, gameState) == 1) {
                 if (pause(window, basicShader))
                     break; //back to menu
             }

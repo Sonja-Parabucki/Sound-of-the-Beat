@@ -33,6 +33,9 @@
     <ClCompile Include="pause.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -51,6 +54,12 @@
     <None Include="ray.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="tex.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="tex.frag">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="menu.h">
@@ -63,6 +72,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pause.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
