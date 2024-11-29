@@ -16,6 +16,9 @@ unsigned int compileShader(GLenum type, const char* source);
 unsigned int createShader(const char* vsSource, const char* fsSource);
 unsigned int loadImageToTexture(const char* filePath);
 
+void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO, bool staticDraw);
+
+
 unsigned int windowWidth();
 
 unsigned int windowHeight();

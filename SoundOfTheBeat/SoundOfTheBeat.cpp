@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "game.h"
 #include "pause.h"
+#include "textUtil.h"
 
 
 int main()
@@ -18,15 +19,17 @@ int main()
 
     if (!glfwInit())
     {
-        std::cout << "GLFW Biblioteka se nije ucitala! :(\n";
+        std::cout << "Failed to load GLFW :(\n";
         return 1;
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
+    int wWidth = windowWidth();
+    int wHeight = windowHeight();
     const char windowTitle[] = "Sound of the Beat";
-    GLFWwindow* window = glfwCreateWindow(windowWidth(), windowHeight(), windowTitle, glfwGetPrimaryMonitor(), NULL);
+    GLFWwindow* window = glfwCreateWindow(wWidth, wHeight, windowTitle, glfwGetPrimaryMonitor(), NULL);
     if (window == NULL) {
         std::cout << "Failed to create window";
         glfwTerminate();
@@ -39,10 +42,25 @@ int main()
         return 3;
     }
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
+    int textLibRet = loadTextLib();
+    if (textLibRet == 1) {
+        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+        return 4;
+    }
+    else if (textLibRet == 2) {
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        return 5;
+    }
+
     unsigned int basicShader = createShader("basic.vert", "basic.frag");
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
+    createLetterShader("tex.vert", "letter.frag", (float)wHeight / wWidth);
+
 
     GameState gameState;
     while (true) {
@@ -52,6 +70,7 @@ int main()
             glDeleteProgram(ballShader);
             glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
+            deleteLetterShader();
 
             glfwTerminate();
             return 0;

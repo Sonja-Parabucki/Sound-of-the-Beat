@@ -88,30 +88,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-
-void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO) {
-    glGenVertexArrays(1, VAO);
-    glBindVertexArray(*VAO);
-
-    glGenBuffers(1, VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
-    glEnableVertexAttribArray(0);
-
-    if (stride == 4 * sizeof(float)) {
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float))); //texture (s, t)
-        glEnableVertexAttribArray(1);
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-
-
-
 int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState) {
     
     /*
@@ -144,7 +120,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     vertices[rayInd + 7] = DEATH_RAY_Y;  // y2
     
     unsigned int VAO, VBO;
-    initVABO(vertices, sizeof(vertices), 2 * sizeof(float), &VAO, &VBO);
+    initVABO(vertices, sizeof(vertices), 2 * sizeof(float), &VAO, &VBO, true);
 
     //background logo
     float logo[] =
@@ -157,7 +133,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int stride = 4 * sizeof(float);
 
     unsigned int VAOtex, VBOtex;
-    initVABO(logo, sizeof(logo), 4 * sizeof(float), &VAOtex, &VBOtex);
+    initVABO(logo, sizeof(logo), 4 * sizeof(float), &VAOtex, &VBOtex, true);
 
 
 
@@ -207,8 +183,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
 
     //setting the game state
     mode = gameState.mode;
@@ -241,8 +215,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         glClear(GL_COLOR_BUFFER_BIT);
 
         //background
-        glBindVertexArray(VAOtex);
         glUseProgram(texShader);
+        glBindVertexArray(VAOtex);
         glActiveTexture(GL_TEXTURE0); //tekstura koja se bind-uje nakon ovoga ce se koristiti sa SAMPLER2D uniformom u sejderu koja odgovara njenom indeksu
         glBindTexture(GL_TEXTURE_2D, logoTexture);
 

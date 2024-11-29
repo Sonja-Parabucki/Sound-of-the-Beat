@@ -36,6 +36,9 @@
     <ClCompile Include="stb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="textUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -60,6 +63,9 @@
     <None Include="tex.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="letter.frag">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="menu.h">
@@ -78,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="textUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

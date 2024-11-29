@@ -130,3 +130,26 @@ unsigned int windowWidth() {
 unsigned int windowHeight() {
     return 1080;
 }
+
+
+void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO, bool staticDraw) {
+    glGenVertexArrays(1, VAO);
+    glBindVertexArray(*VAO);
+
+    glGenBuffers(1, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    if (staticDraw)
+        glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_STATIC_DRAW);
+    else
+        glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
+    glEnableVertexAttribArray(0);
+
+    if (stride == 4 * sizeof(float)) {
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float))); //texture (s, t)
+        glEnableVertexAttribArray(1);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}

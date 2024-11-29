@@ -35,10 +35,12 @@ Game menu(GLFWwindow* window, unsigned int shader) {
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float))); //Objasni da su preostala cetiri broja boja (preskacemo preko XY od pozicije, pa je pomeraj 2 * sizeof(float))
     glEnableVertexAttribArray(1);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
 
     //render petlja
-    glClearColor(0.0, 0.0, 0.1, 1.0);
+    glClearColor(0.5, 0.5, 0.5, 1.0);
 
     int next = -1;
     int mode = 0;
@@ -65,10 +67,23 @@ Game menu(GLFWwindow* window, unsigned int shader) {
             mode = 1;
         }
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glUseProgram(shader);
+
         glDrawArrays(GL_TRIANGLES, 0, 3);   //_TRIANGLE_STRIP spaja 3. na prethodna 2
                                             //_TRIANGLE_FAN lepeza, zajednicko prvo teme
                                             //_LINES po dva temena spaja (glLineWidth(5);), _LINE_STRIP, _LOOP
                                             //POINTS (glPointSize(5);)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+        renderText("Sound of the Beat", 50, 50, 1);
+
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
