@@ -2,7 +2,7 @@
 #include <random>
 
 
-#define CRES 30 // Rezolucija kruga
+#define CRES 30 // circle resoloution
 #define SPEED 0.01
 #define INFLATION_SPEED 0.6
 #define r 0.08
@@ -88,34 +88,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-void renderLogo(unsigned int texShader) {
-    float logo[] =
-    {   //X        Y      S    T 
-        -LIMIT,  LIMIT,  0.0, 1.0,
-        -LIMIT, -LIMIT,  0.0, 0.0,
-         LIMIT, -LIMIT,  1.0, 0.0,
-         LIMIT,  LIMIT,  1.0, 1.0,
-    };
-    unsigned int stride = 4 * sizeof(float);
-
-    unsigned int VAOtex;
-    glGenVertexArrays(1, &VAOtex);
-    glBindVertexArray(VAOtex);
-
-    unsigned int VBOtex;
-    glGenBuffers(1, &VBOtex);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOtex);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(logo), logo, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);  //X, Y
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));    // S, T
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
 
 void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO) {
     glGenVertexArrays(1, VAO);
@@ -174,6 +146,19 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int VAO, VBO;
     initVABO(vertices, sizeof(vertices), 2 * sizeof(float), &VAO, &VBO);
 
+    //background logo
+    float logo[] =
+    {   //X        Y      S    T 
+        -LIMIT, -LIMIT,  0.0, 0.0,
+        -LIMIT,  LIMIT,  0.0, 1.0,
+         LIMIT, -LIMIT,  1.0, 0.0,
+         LIMIT,  LIMIT,  1.0, 1.0,
+    };
+    unsigned int stride = 4 * sizeof(float);
+
+    unsigned int VAOtex, VBOtex;
+    initVABO(logo, sizeof(logo), 4 * sizeof(float), &VAOtex, &VBOtex);
+
 
 
     /*
@@ -188,7 +173,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     */
-
+    //shaders
     glUseProgram(shader);
     unsigned int uRLoc = glGetUniformLocation(shader, "uR");
     unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
@@ -203,20 +188,37 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
 
+    //texture
+    unsigned int logoTexture = loadImageToTexture("resources/queen.png");
+    glBindTexture(GL_TEXTURE_2D, logoTexture);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+    glBindTexture(GL_TEXTURE_2D, 0);
 
+    glUseProgram(texShader);
+    unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
+    glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
+    unsigned int uTexAspectLoc = glGetUniformLocation(texShader, "uAspect");
+    glUniform1f(uTexAspectLoc, aspectRatio);
+    glUseProgram(0);
+
+    //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
-
+    //setting the game state
     mode = gameState.mode;
     score = gameState.score;
     balls = gameState.balls;
     glfwSetTime(gameState.time);
     int next = 0;
 
-    //render petlja
-    glClearColor(0.1, 0.1, 0.1, 1.0);
+    //render loop
+    glClearColor(0., 0., 0.1, 1.0);
 
     int i = 0;
     bool endGame = false;
@@ -238,6 +240,19 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
         glClear(GL_COLOR_BUFFER_BIT);
 
+        //background
+        glBindVertexArray(VAOtex);
+        glUseProgram(texShader);
+        glActiveTexture(GL_TEXTURE0); //tekstura koja se bind-uje nakon ovoga ce se koristiti sa SAMPLER2D uniformom u sejderu koja odgovara njenom indeksu
+        glBindTexture(GL_TEXTURE_2D, logoTexture);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+
         //generate new balls
         int t = glfwGetTime();
         if (t - spawnTimer >= 1) {
@@ -256,8 +271,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         for (const auto& ball : balls) {
 
             if (mode == 1) {
-                if (ball.red) glUniform3f(uColLoc, 1.0, 0.0, 0.0);
-                else glUniform3f(uColLoc, 0.0, 0.0, 1.0);
+                if (ball.red) glUniform3f(uColLoc, 0.7, 0.05, 0.1);
+                else glUniform3f(uColLoc, 0.05, 0., 0.7);
             }
 
             glUniform1f(inflationLoc, ball.inflation);
@@ -300,5 +315,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
+
+    glDeleteTextures(1, &logoTexture);
+    glDeleteBuffers(1, &VBOtex);
+    glDeleteVertexArrays(1, &VAOtex);
+
     return next;
 }

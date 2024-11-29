@@ -82,7 +82,7 @@ unsigned int createShader(const char* vsSource, const char* fsSource)
     return program;
 }
 
-static unsigned loadImageToTexture(const char* filePath) {
+unsigned int loadImageToTexture(const char* filePath) {
     int TextureWidth;
     int TextureHeight;
     int TextureChannels;
