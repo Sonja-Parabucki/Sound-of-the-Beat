@@ -6,9 +6,9 @@
 #define SPEED 0.01
 #define INFLATION_SPEED 0.6
 #define r 0.08
-#define DEATH_RAY_Y -0.8
+#define LIMIT 0.75
+#define DEATH_RAY_Y -LIMIT + 0.05
 #define DEATH_RAY_FRAMES 6
-#define LIMIT 0.8
 
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
@@ -16,6 +16,8 @@ const double FRAME_TIME = 1.0 / FPS;
 
 std::vector<Ball> balls;
 int score;
+int streak;
+int combo = 1;
 int wWidth, wHeight;
 int mode;
 int deathRayDuration = 0;   //in frames
@@ -24,6 +26,13 @@ float deathRayX;
 
 float randomX() {
     return -LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (LIMIT*2)));
+}
+
+void setCombo() {
+    combo = 1;
+    if (streak >= 8) combo = 8;
+    else if (streak >= 4) combo = 4;
+    else if (streak >= 2) combo = 2;
 }
 
 void generateBall() {
@@ -42,7 +51,9 @@ void updateBalls() {
             deathRayX = it->x;
             deathRayDuration = DEATH_RAY_FRAMES;
             score -= 5;
-            std::cout << score << "\n";
+            combo = 1;
+            streak = 0;
+            //std::cout << score << "\n";
         }
 
         if (it->hit)
@@ -70,9 +81,10 @@ void checkShot(GLFWwindow* window, bool leftClick) {
             continue;
 
         if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
-            score += 10;
-            //todo: update score display
-            std::cout << score << "\n";
+            streak += 1;
+            setCombo();
+            score += 2 * combo;
+            //std::cout << score << "\n";
             it->hit = true;
             return;
         }
@@ -187,6 +199,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //setting the game state
     mode = gameState.mode;
     score = gameState.score;
+    streak = gameState.streak;
+    setCombo();
     balls = gameState.balls;
     glfwSetTime(gameState.time);
     int next = 0;
@@ -196,6 +210,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     int i = 0;
     bool endGame = false;
+    std::string scoreTx;
+    std::string comboTx;
 
     int spawnTimer = 0;
     double renderStart, renderTime;
@@ -206,6 +222,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             gameState.score = score;
+            gameState.streak = streak;
             gameState.balls = balls;
             gameState.time = glfwGetTime();
             next = 1;
@@ -276,6 +293,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
+
+        scoreTx = "SCORE: " + std::to_string(score);
+        renderText(scoreTx, 20, 50, 1);
+
+        comboTx = 'x' + std::to_string(combo);
+        renderText(comboTx, 20, 10, 0.8);
         
         glfwSwapBuffers(window);
         glfwPollEvents();

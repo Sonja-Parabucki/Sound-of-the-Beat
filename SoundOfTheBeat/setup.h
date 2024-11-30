@@ -39,6 +39,7 @@ struct Ball {
 
 struct GameState {
     int score;
+    int streak;
     int mode;
     double time;
     std::vector<Ball> balls;

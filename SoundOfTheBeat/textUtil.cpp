@@ -79,7 +79,7 @@ int loadTextLib() {
         return 1;
     
     FT_Face face;
-    if (FT_New_Face(ft, "fonts/OCRAEXT.TTF", 0, &face))
+    if (FT_New_Face(ft, "fonts/AGENCYB.TTF", 0, &face))
         return 2;
 
     FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);

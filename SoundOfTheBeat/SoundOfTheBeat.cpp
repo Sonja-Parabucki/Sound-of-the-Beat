@@ -76,7 +76,7 @@ int main()
             return 0;
         }
         //start new game
-        gameState = GameState{ 10, gameInstance.mode, 0, {} };
+        gameState = GameState{ 10, 0, gameInstance.mode, 0, {} };
         while (true) {
             if (game(window, ballShader, rayShader, texShader, gameState) == 1) {
                 if (pause(window, basicShader, gameState.score))
