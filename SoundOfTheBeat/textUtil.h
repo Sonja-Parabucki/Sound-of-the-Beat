@@ -5,6 +5,8 @@
 
 #include "setup.h"
 
+const int FONT_SIZE = 48;
+
 int loadTextLib();
 
 void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, float wHeight);

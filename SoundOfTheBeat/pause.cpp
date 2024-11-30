@@ -3,35 +3,18 @@
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
-bool pause(GLFWwindow* window, unsigned int shader) {
-    float vertices[] =
-    {  //X    Y       R    G    B    A
-       -0.06,  0.1,    0.0, 1.0, 0.0, 1.0,
-        0.06,  0.0,    0.0, 1.0, 0.0, 1.0,
-       -0.06,  -0.1,    0.0, 1.0, 0.0, 1.0
-    };
-    unsigned int stride = (2 + 4) * sizeof(float);
+bool pause(GLFWwindow* window, unsigned int shader, int score) {
 
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    float wWidth = windowWidth();
+    float wHeight = windowHeight();
 
+    std::string title = "GAME PAUSED";
+    std::string startTx = "press [ENTER] to CONTINUE";
+    std::string exitTx = "[ESC] back to MENI";
+    std::string scoreTx = "SCORE: " + std::to_string(score);
 
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-
-    
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    //render petlja
-    glClearColor(0.0, 0.1, 0.0, 1.0);
+    //render loop
+    glClearColor(0.1, 0.0, 0.0, 1.0);
 
     double renderStart, renderTime;
     bool backToMenu = false;
@@ -49,7 +32,13 @@ bool pause(GLFWwindow* window, unsigned int shader) {
             break;
         }
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+        renderText(title, 100, wHeight - 200, 2);
+        renderText(startTx, 120, wHeight / 2, 1);
+        renderText(exitTx, 120, wHeight / 2 - 50, 1);
+        renderText(scoreTx, 120, 150, 1.2);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -59,10 +48,6 @@ bool pause(GLFWwindow* window, unsigned int shader) {
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
         }
     }
-    glBindVertexArray(0);
-    glUseProgram(0);
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
 	return backToMenu;
 }
 

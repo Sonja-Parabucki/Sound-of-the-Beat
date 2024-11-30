@@ -5,8 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
-
 struct Character {
     unsigned int textureID;  // ID handle of the glyph texture
     int sizeX;
@@ -84,7 +82,7 @@ int loadTextLib() {
     if (FT_New_Face(ft, "fonts/OCRAEXT.TTF", 0, &face))
         return 2;
 
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
     loadChars(ft, face);
 
     FT_Done_Face(face);
@@ -104,8 +102,6 @@ void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, fl
     unsigned uProjectionLoc = glGetUniformLocation(letterShader, "projection");
     glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    //unsigned int uTexAspectLoc = glGetUniformLocation(letterShader, "uAspect");
-    //glUniform1f(uTexAspectLoc, aspectRatio);
     glUseProgram(0);
 }
 

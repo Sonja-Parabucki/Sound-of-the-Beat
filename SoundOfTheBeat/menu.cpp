@@ -1,12 +1,10 @@
 #include "menu.h"
 
-//klik na [L]eave => izlaz iz igre
-
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
 
-Game menu(GLFWwindow* window, unsigned int shader) {
+Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
 
     float vertices[] =
     {  //X    Y       R    G    B    A
@@ -37,18 +35,28 @@ Game menu(GLFWwindow* window, unsigned int shader) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    float wWidth = windowWidth();
+    float wHeight = windowHeight();
+
+    std::string title = "SOUND OF THE BEAT";
+    std::string startTx = "press [ENTER] to START";
+    std::string exitTx = "[Q]uit";
+    std::string mode1Tx = "  [1] Easy";
+    std::string mode2Tx = "> [2] Hard";
+    std::string highScoreTx = "HIGH SCORE: " + std::to_string(highScore);
+
 
     //render petlja
-    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glClearColor(0.0, 0.0, 0.1, 1.0);
 
     int next = -1;
-    int mode = 0;
+    int mode = 1;
 
     double renderStart, renderTime;
     while (next == -1) {
         renderStart = glfwGetTime();
 
-        if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         {
             next = 0;
             //glfwSetWindowShouldClose(window, GL_TRUE);
@@ -60,10 +68,15 @@ Game menu(GLFWwindow* window, unsigned int shader) {
         if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
         {
             mode = 0;
+            mode1Tx[0] = '>';
+            mode2Tx[0] = ' ';
+
         }
         if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         {
             mode = 1;
+            mode1Tx[0] = ' ';
+            mode2Tx[0] = '>';
         }
         glClear(GL_COLOR_BUFFER_BIT);
         
@@ -81,7 +94,12 @@ Game menu(GLFWwindow* window, unsigned int shader) {
         glUseProgram(0);
         
 
-        renderText("Sound of the Beat", 100, 50, 2);
+        renderText(title, 100, wHeight - 200, 2);
+        renderText(startTx, 120, wHeight / 2, 1);
+        renderText(exitTx, 120, wHeight / 2 - 50, 1);
+        renderText(mode1Tx, wWidth - 400, 200, 0.8);
+        renderText(mode2Tx, wWidth - 400, 150, 0.8);
+        renderText(highScoreTx, 120, 150, 1.2);
 
 
         glfwSwapBuffers(window);

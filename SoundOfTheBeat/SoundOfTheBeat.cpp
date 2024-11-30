@@ -64,7 +64,7 @@ int main()
 
     GameState gameState;
     while (true) {
-        Game gameInstance = menu(window, basicShader);
+        Game gameInstance = menu(window, basicShader, highScore);
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
@@ -79,7 +79,7 @@ int main()
         gameState = GameState{ 10, gameInstance.mode, 0, {} };
         while (true) {
             if (game(window, ballShader, rayShader, texShader, gameState) == 1) {
-                if (pause(window, basicShader))
+                if (pause(window, basicShader, gameState.score))
                     break; //back to menu
             }
             else break; //finished the song till the end
