@@ -7,7 +7,7 @@
 
 int loadTextLib();
 
-void createLetterShader(const char* vertsh, const char* fragsh, float aspectRatio);
+void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, float wHeight);
 
 void deleteLetterShader();
 

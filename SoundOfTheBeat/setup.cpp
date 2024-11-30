@@ -142,6 +142,7 @@ void initVABO(const float* vertices, size_t verticesLength, unsigned int stride,
         glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_STATIC_DRAW);
     else
         glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
     glEnableVertexAttribArray(0);
 

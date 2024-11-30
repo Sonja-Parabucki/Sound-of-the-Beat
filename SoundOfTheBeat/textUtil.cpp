@@ -1,6 +1,10 @@
 #include "textUtil.h"
 #include <map>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 
 struct Character {
@@ -90,13 +94,18 @@ int loadTextLib() {
 }
 
 
-void createLetterShader(const char* vertsh, const char* fragsh, float aspectRatio) {
+void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, float wHeight) {
     letterShader = createShader(vertsh, fragsh);
     glUseProgram(letterShader);
     unsigned uTexLoc = glGetUniformLocation(letterShader, "uTex");
     glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
-    unsigned int uTexAspectLoc = glGetUniformLocation(letterShader, "uAspect");
-    glUniform1f(uTexAspectLoc, aspectRatio);
+
+    glm::mat4 projection = glm::ortho(0.0f, wWidth, 0.0f, wHeight);
+    unsigned uProjectionLoc = glGetUniformLocation(letterShader, "projection");
+    glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    //unsigned int uTexAspectLoc = glGetUniformLocation(letterShader, "uAspect");
+    //glUniform1f(uTexAspectLoc, aspectRatio);
     glUseProgram(0);
 }
 

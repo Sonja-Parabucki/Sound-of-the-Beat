@@ -66,6 +66,9 @@
     <None Include="letter.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="letter.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="menu.h">

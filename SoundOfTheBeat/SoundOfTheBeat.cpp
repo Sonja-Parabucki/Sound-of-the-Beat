@@ -59,7 +59,7 @@ int main()
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
-    createLetterShader("tex.vert", "letter.frag", (float)wHeight / wWidth);
+    createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
 
     GameState gameState;

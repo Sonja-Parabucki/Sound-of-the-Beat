@@ -1,6 +1,5 @@
 #include "menu.h"
 
-//klik na SPACE => pocinje igru
 //klik na [L]eave => izlaz iz igre
 
 const double FPS = 60.0;
@@ -67,7 +66,7 @@ Game menu(GLFWwindow* window, unsigned int shader) {
             mode = 1;
         }
         glClear(GL_COLOR_BUFFER_BIT);
-
+        
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glUseProgram(shader);
@@ -80,8 +79,9 @@ Game menu(GLFWwindow* window, unsigned int shader) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         glUseProgram(0);
+        
 
-        renderText("Sound of the Beat", 50, 50, 1);
+        renderText("Sound of the Beat", 100, 50, 2);
 
 
         glfwSwapBuffers(window);
