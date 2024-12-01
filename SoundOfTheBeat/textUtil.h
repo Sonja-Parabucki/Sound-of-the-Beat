@@ -11,7 +11,7 @@ int loadTextLib();
 
 void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, float wHeight);
 
-void deleteLetterShader();
+void deallocateLetterResources();
 
 //void loadChars(FT_Library ft, FT_Face face);
 

@@ -70,7 +70,7 @@ int main()
             glDeleteProgram(ballShader);
             glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
-            deleteLetterShader();
+            deallocateLetterResources();
 
             glfwTerminate();
             return 0;

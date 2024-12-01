@@ -105,8 +105,10 @@ void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, fl
     glUseProgram(0);
 }
 
-void deleteLetterShader() {
+void deallocateLetterResources() {
     glDeleteProgram(letterShader);
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 
