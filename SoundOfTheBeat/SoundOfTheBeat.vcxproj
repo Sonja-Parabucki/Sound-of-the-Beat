@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\include;C:\Users\parab\OneDrive\Desktop\Grafika\Projekat\irrKlang-64bit-1.6.0\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\lib\x64\v141\static\Debug;C:\Users\parab\OneDrive\Desktop\Grafika\Projekat\irrKlang-64bit-1.6.0\lib\Winx64-visualStudio</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\include;$(SolutionDir)\..\irrKlang-64bit-1.6.0\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\lib\x64\v141\static\Debug;$(SolutionDir)\..\irrKlang-64bit-1.6.0\lib\Winx64-visualStudio</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); $(SolutionDir)\packages\freetype.2.8.0.1\build\native\include</IncludePath>
