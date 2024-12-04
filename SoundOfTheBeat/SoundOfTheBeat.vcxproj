@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); $(SolutionDir)\packages\freetype.2.8.0.1\build\native\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\lib\x64\v141\static\Debug</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\include;C:\Users\parab\OneDrive\Desktop\Grafika\Projekat\irrKlang-64bit-1.6.0\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\packages\freetype.2.8.0.1\build\native\lib\x64\v141\static\Debug;C:\Users\parab\OneDrive\Desktop\Grafika\Projekat\irrKlang-64bit-1.6.0\lib\Winx64-visualStudio</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); $(SolutionDir)\packages\freetype.2.8.0.1\build\native\include</IncludePath>
@@ -112,11 +112,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;freetype28d.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;freetype28d.lib;irrKlang.lib</AdditionalDependencies>
       <EntryPointSymbol>
       </EntryPointSymbol>
     </Link>
@@ -145,6 +147,7 @@
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="setup.cpp" />
+    <ClCompile Include="song.cpp" />
     <ClCompile Include="SoundOfTheBeat.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="textUtil.cpp" />
@@ -166,6 +169,7 @@
     <ClInclude Include="menu.h" />
     <ClInclude Include="pause.h" />
     <ClInclude Include="setup.h" />
+    <ClInclude Include="song.h" />
     <ClInclude Include="stb.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="textUtil.h" />

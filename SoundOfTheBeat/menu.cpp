@@ -6,6 +6,8 @@ const double FRAME_TIME = 1.0 / FPS;
 
 Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
 
+    //playSong("resources/song/theme.wav", true);
+
     float vertices[] =
     {  //X    Y       R    G    B    A
        -0.06,  0.1,    1.0, 1.0, 1.0, 1.0,
@@ -115,5 +117,8 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
     glUseProgram(0);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
+
+    //stopSong();
+
     return Game{ mode, next };
 }

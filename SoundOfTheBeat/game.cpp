@@ -13,7 +13,10 @@
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
+double temp;
 
+std::vector<double> beatTimes;
+int lastBeat;
 std::vector<Ball> balls;
 int score;
 int streak;
@@ -35,10 +38,14 @@ void setCombo() {
     else if (streak >= 2) combo = 2;
 }
 
-void generateBall() {
-    Ball ball{ randomX(), 1.0, false, 1 };
+void generateBall(int beatInd) {
+    if (beatInd >= beatTimes.size()) {
+        std::cout<< beatTimes.size() << "\n";
+        return;
+    }
+    Ball ball{ randomX(), 1.0, beatTimes.at(beatInd), false, 1};
     if (mode == 1)
-        ball.red = (int)glfwGetTime() % 2 == 0;
+        ball.red = ball.x <= 0;
     balls.push_back(ball);
 }
 
@@ -81,9 +88,21 @@ void checkShot(GLFWwindow* window, bool leftClick) {
             continue;
 
         if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
-            streak += 1;
-            setCombo();
-            score += 2 * combo;
+            double t = glfwGetTime();
+
+            temp = t - it->timeToHit;
+            
+            if (abs(t - it->timeToHit) < 0.5) {
+                streak += 1;
+                setCombo();
+                score += 2 * combo;
+            }
+            else {
+                //the hit is early or late => lose the streak, no points gained or lost
+                streak = 0;
+                setCombo();
+            }
+
             //std::cout << score << "\n";
             it->hit = true;
             return;
@@ -100,7 +119,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -205,6 +224,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     glfwSetTime(gameState.time);
     int next = 0;
 
+    beatTimes = beats;
+
     //render loop
     glClearColor(0., 0., 0.1, 1.0);
 
@@ -213,10 +234,22 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     std::string scoreTx;
     std::string comboTx;
 
-    int spawnTimer = 0;
+    playSong("resources/song/theme.wav", false);
+    lastBeat = 0;
+
     double renderStart, renderTime;
     while (score > 0 && !endGame) {
         renderStart = glfwGetTime();
+
+        if (balls.empty() && lastBeat == beats.size()) {
+            gameState.score = score;
+            gameState.streak = streak;
+            gameState.balls = balls;
+            gameState.time = glfwGetTime();
+            next = 0;
+            endGame = true;
+            break;
+        }
 
         //pause game
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -245,10 +278,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
 
         //generate new balls
-        int t = glfwGetTime();
-        if (t - spawnTimer >= 1) {
-            generateBall();
-            spawnTimer = t;
+        double t = glfwGetTime();
+        if ((beats.size() > lastBeat) && (beats.at(lastBeat) - t < 0.5)) {
+            generateBall(lastBeat);
+            lastBeat++;
         }
 
         //draw balls
@@ -299,6 +332,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         comboTx = 'x' + std::to_string(combo);
         renderText(comboTx, 20, 10, 0.8);
+        renderText("TEMP:" + std::to_string(temp), 0, 0, 0.5);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -316,6 +350,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     glDeleteTextures(1, &logoTexture);
     glDeleteBuffers(1, &VBOtex);
     glDeleteVertexArrays(1, &VAOtex);
+
+    stopSong();
 
     return next;
 }

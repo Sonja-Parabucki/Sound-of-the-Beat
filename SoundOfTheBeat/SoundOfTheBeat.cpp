@@ -17,6 +17,18 @@ int main()
     }
     std::cout << highScore << " = HIGH SCORE\n";
 
+    
+    std::string beat_path = "resources/song/beats.txt";
+    std::vector<double> beats;
+    double beat;
+    std::ifstream fin_beat(beat_path);
+    if (fin_beat && fin_beat.is_open()) {
+        while ((fin_beat >> beat))
+            beats.push_back(beat);
+        fin_beat.close();;
+    }
+
+
     if (!glfwInit())
     {
         std::cout << "Failed to load GLFW :(\n";
@@ -61,6 +73,7 @@ int main()
     unsigned int texShader = createShader("tex.vert", "tex.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
+    startEngine();
 
     GameState gameState;
     while (true) {
@@ -71,6 +84,8 @@ int main()
             glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
             deallocateLetterResources();
+            
+            stopEngine();
 
             glfwTerminate();
             return 0;
@@ -78,7 +93,7 @@ int main()
         //start new game
         gameState = GameState{ 10, 0, gameInstance.mode, 0, {} };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, gameState) == 1) {
+            if (game(window, ballShader, rayShader, texShader, gameState, beats) == 1) {
                 if (pause(window, basicShader, gameState.score))
                     break; //back to menu
             }

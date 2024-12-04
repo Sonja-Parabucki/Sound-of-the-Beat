@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "stb.h"
+#include "song.h"
 
 
 unsigned int compileShader(GLenum type, const char* source);
@@ -30,6 +31,7 @@ struct Game {
 
 struct Ball {
     float x, y;
+    double timeToHit;
     //vreme kad da se pojavi i kad treba da se stisne
     //svaka svoju brzinu?
     bool hit;
