@@ -286,7 +286,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         //generate new balls
         double t = glfwGetTime();
-        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 0.5)) {
+        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 2)) {
             generateBall(lastBeat);
             lastBeat++;
         }
