@@ -2,8 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <irrKlang.h>
+
 
 int startEngine();
-void playSong(const char* filename, bool loop);
-void stopSong();
+irrklang::ISound* playSong(const char* filename, bool loop, bool paused);
+void resumeSong(irrklang::ISound* sound);
+void pauseSong(irrklang::ISound* sound);
+void stopSongs();
+void stopSong(irrklang::ISound* sound);
 void stopEngine();

@@ -6,7 +6,7 @@ const double FRAME_TIME = 1.0 / FPS;
 
 Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
 
-    //playSong("resources/song/theme.wav", true);
+    //playSong("resources/song/theme.wav", true, false);
 
     float vertices[] =
     {  //X    Y       R    G    B    A

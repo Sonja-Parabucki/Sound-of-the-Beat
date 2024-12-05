@@ -119,7 +119,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song) {
     
     /*
     Generisanje temena kruga po jednacini za kruznicu:
@@ -222,6 +222,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     setCombo();
     balls = gameState.balls;
     glfwSetTime(gameState.time);
+    lastBeat = gameState.lastBeat;
     int next = 0;
 
     beatTimes = beats;
@@ -234,8 +235,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     std::string scoreTx;
     std::string comboTx;
 
-    playSong("resources/song/theme.wav", false);
-    lastBeat = 0;
+    resumeSong(song);
 
     double renderStart, renderTime;
     while (score > 0 && !endGame) {
@@ -254,10 +254,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         //pause game
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
+            pauseSong(song);
             gameState.score = score;
             gameState.streak = streak;
             gameState.balls = balls;
             gameState.time = glfwGetTime();
+            gameState.lastBeat = lastBeat;
             next = 1;
             endGame = true;
             break;
@@ -350,8 +352,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     glDeleteTextures(1, &logoTexture);
     glDeleteBuffers(1, &VBOtex);
     glDeleteVertexArrays(1, &VAOtex);
-
-    stopSong();
 
     return next;
 }

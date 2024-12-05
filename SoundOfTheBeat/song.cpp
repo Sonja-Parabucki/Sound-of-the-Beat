@@ -1,25 +1,35 @@
 #include "song.h"
 
-#include <iostream>
-#include <irrKlang.h>
-using namespace irrklang;
 
-ISoundEngine* engine;
+irrklang::ISoundEngine* engine;
 
 int startEngine() {
-     engine = createIrrKlangDevice();
+     engine = irrklang::createIrrKlangDevice();
 
     if (!engine)
         return 1; // error starting up the engine
 }
 
-void playSong(const char* filename, bool loop)
+irrklang::ISound* playSong(const char* filename, bool loop, bool paused)
 {
     // play some sound stream, looped
-    engine->play2D(filename, loop);
+    return engine->play2D(filename, loop, paused);
 }
 
-void stopSong() {
+void resumeSong(irrklang::ISound* sound) {
+    sound->setIsPaused(false);
+}
+
+void pauseSong(irrklang::ISound* sound) {
+    sound->setIsPaused(true);
+}
+
+void stopSong(irrklang::ISound* sound) {
+    sound->stop();
+    sound->drop();
+}
+
+void stopSongs() {
     engine->stopAllSounds();
 }
 

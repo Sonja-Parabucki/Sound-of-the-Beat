@@ -31,7 +31,7 @@ int main()
 
     if (!glfwInit())
     {
-        std::cout << "Failed to load GLFW :(\n";
+        std::cout << "Failed to load GLFW\n";
         return 1;
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -74,9 +74,14 @@ int main()
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
     startEngine();
+    //game song
+    irrklang::ISound* song;
 
     GameState gameState;
     while (true) {
+        song = playSong("resources/song/theme.wav", false, true);
+        std::cout << "posle " << song->getPlayPosition() << '\n';
+
         Game gameInstance = menu(window, basicShader, highScore);
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
@@ -84,22 +89,24 @@ int main()
             glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
             deallocateLetterResources();
-            
+
+            stopSongs();
             stopEngine();
 
             glfwTerminate();
             return 0;
         }
         //start new game
-        gameState = GameState{ 10, 0, gameInstance.mode, 0, {} };
+        gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, gameState, beats) == 1) {
+            if (game(window, ballShader, rayShader, texShader, gameState, beats, song) == 1) {
                 if (pause(window, basicShader, gameState.score))
                     break; //back to menu
             }
             else break; //finished the song till the end
         }
 
+        stopSong(song);
 
         std::cout << "SCORE: " << gameState.score << std::endl;
         if (gameState.score > highScore) {

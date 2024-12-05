@@ -32,7 +32,6 @@ struct Game {
 struct Ball {
     float x, y;
     double timeToHit;
-    //vreme kad da se pojavi i kad treba da se stisne
     //svaka svoju brzinu?
     bool hit;
     float inflation;
@@ -45,5 +44,6 @@ struct GameState {
     int mode;
     double time;
     std::vector<Ball> balls;
+    int lastBeat;
 };
 
