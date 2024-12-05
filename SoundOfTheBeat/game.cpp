@@ -122,18 +122,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    /*
-    Generisanje temena kruga po jednacini za kruznicu:
-    Trebace nam bar X i Y koordinate, posto je boja u fragment sejderu
-    Treba nam 2 * CRES brojeva za X i Y koordinate, gde je CRES zapravo broj temena na kruznici (CRES 6 = sestougao)
-    Pored toga nam trebaju jos dva temena - centar i ponovljeno teme ugla 0 (da bi se krug pravilno zatvorio)
-    */
     float vertices[(CRES + 2) * 2 + 8];
-
     vertices[0] = 0;
     vertices[1] = 0;
     for (int i = 0; i <= CRES; i++)
@@ -172,19 +165,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     initVABO(logo, sizeof(logo), 4 * sizeof(float), &VAOtex, &VBOtex, true);
 
 
-
-    /*
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    */
     //shaders
     glUseProgram(shader);
     unsigned int uRLoc = glGetUniformLocation(shader, "uR");
@@ -201,21 +181,23 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
 
     //texture
-    unsigned int logoTexture = loadImageToTexture("resources/queen.png");
-    glBindTexture(GL_TEXTURE_2D, logoTexture);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
-    glBindTexture(GL_TEXTURE_2D, 0);
+    unsigned int logoTexture = loadImageToTexture(texturePath);
+    if (logoTexture != 0) {
+        glBindTexture(GL_TEXTURE_2D, logoTexture);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-    glUseProgram(texShader);
-    unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
-    glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
-    unsigned int uTexAspectLoc = glGetUniformLocation(texShader, "uAspect");
-    glUniform1f(uTexAspectLoc, aspectRatio);
-    glUseProgram(0);
+        glUseProgram(texShader);
+        unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
+        glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
+        unsigned int uTexAspectLoc = glGetUniformLocation(texShader, "uAspect");
+        glUniform1f(uTexAspectLoc, aspectRatio);
+        glUseProgram(0);
+    }
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -272,16 +254,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         glClear(GL_COLOR_BUFFER_BIT);
 
         //background
-        glUseProgram(texShader);
-        glBindVertexArray(VAOtex);
-        glActiveTexture(GL_TEXTURE0); //tekstura koja se bind-uje nakon ovoga ce se koristiti sa SAMPLER2D uniformom u sejderu koja odgovara njenom indeksu
-        glBindTexture(GL_TEXTURE_2D, logoTexture);
+        if (logoTexture != 0) {
+            glUseProgram(texShader);
+            glBindVertexArray(VAOtex);
+            glActiveTexture(GL_TEXTURE0); //tekstura koja se bind-uje nakon ovoga ce se koristiti sa SAMPLER2D uniformom u sejderu koja odgovara njenom indeksu
+            glBindTexture(GL_TEXTURE_2D, logoTexture);
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindVertexArray(0);
-        glUseProgram(0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
 
 
         //generate new balls

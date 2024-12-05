@@ -156,13 +156,13 @@ int main()
             continue;
         }
         std::vector<double> beats = loadSong(gameInstance.selectedSongName);
-        std::string songPath = SONG_FOLDER + gameInstance.selectedSongName + ".wav";
-        song = playSong(songPath.c_str(), false, true);
+        std::string songPath = SONG_FOLDER + gameInstance.selectedSongName;
+        song = playSong((songPath + ".wav").c_str(), false, true);
 
         //start new game
         gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, gameState, beats, song) == 1) {
+            if (game(window, ballShader, rayShader, texShader, gameState, beats, song, (songPath + ".png").c_str()) == 1) {
                 if (pause(window, basicShader, gameState.score))
                     break; //back to menu
             }
