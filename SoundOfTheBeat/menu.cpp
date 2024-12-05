@@ -5,8 +5,6 @@ const double FRAME_TIME = 1.0 / FPS;
 
 
 Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> songs, std::string selectedSongName) {
-
-    //irrklang::ISound* theme = playSong("resources/song/theme.wav", true, false);
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -14,9 +12,9 @@ Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> so
     float wHeight = windowHeight();
 
     std::string title = "SOUND OF THE BEAT";
-    std::string startTx = "[ENTER] to START";
-    std::string helpTx = "[H]ow to play";
-    std::string exitTx = "[Q]uit";
+    std::string startTx = "to START";
+    std::string helpTx = "ow to play";
+    std::string exitTx = "uit";
     std::string mode1Tx = "[1] Easy";
     std::string mode2Tx = "[2] Hard";
     std::string highScoreTx = "HIGH SCORE: ";
@@ -77,17 +75,20 @@ Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> so
         glClear(GL_COLOR_BUFFER_BIT);
       
         renderText(title, 100, wHeight - 200, 2, 0.78, 0.94, 0.93);
-        renderText(startTx, 120, wHeight / 2 - 80, 1, 1., 1., 1.);
-        renderText(helpTx, 120, wHeight / 2 - 140, 1, 1., 1., 1.);
-        renderText(exitTx, 120, wHeight / 2 - 200, 1, 1., 1., 1.);
+        renderText("[ENTER]", 120, wHeight / 2 - 80, 1, 0.78, 0.94, 0.93);
+        renderText(startTx, 260, wHeight / 2 - 80, 1, 1., 1., 1.);
+        renderText("[H]", 120, wHeight / 2 - 140, 1, 0.78, 0.94, 0.93);
+        renderText(helpTx, 172, wHeight / 2 - 140, 1, 1., 1., 1.);
+        renderText("[Q]", 120, wHeight / 2 - 200, 1, 0.93, 0.94, 0.78);
+        renderText(exitTx, 172, wHeight / 2 - 200, 1, 1., 1., 1.);
 
         if (mode == 0) {
-            renderText(mode1Tx, wWidth - 400, 200, 0.8, 0., 0.82, 0.8);
-            renderText(mode2Tx, wWidth - 400, 150, 0.8, 0., 0.52, 0.5);
+            renderText(mode1Tx, wWidth - 400, 200, 0.8, 1., 1., 1.);
+            renderText(mode2Tx, wWidth - 400, 150, 0.8, 0.5, 0.5, 0.5);
         }
         else {
-            renderText(mode1Tx, wWidth - 400, 200, 0.8, 0., 0.52, 0.5);
-            renderText(mode2Tx, wWidth - 400, 150, 0.8, 0., 0.82, 0.8);
+            renderText(mode1Tx, wWidth - 400, 200, 0.8, 0.5, 0.5, 0.5);
+            renderText(mode2Tx, wWidth - 400, 150, 0.8, 1., 1., 1.);
         }
 
         renderText("[<<] " + iter->first + " [>>]", 120, wHeight / 2 + 100, 1, 0.84, 0.85, 0.94);
@@ -104,8 +105,6 @@ Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> so
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
         }
     }
-
-    //stopSong(theme);
 
     return Game{ mode, next, iter->first };
 }

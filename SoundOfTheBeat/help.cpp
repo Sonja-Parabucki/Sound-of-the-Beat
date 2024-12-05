@@ -11,12 +11,11 @@ void showHelp(GLFWwindow* window) {
     float wHeight = windowHeight();
 
     std::string title = "HOW TO PLAY?";
-    std::string text1 = "Destroy the balls in the beat of the song!";
-    std::string text2 = "You get 2 points on a hit in the beat. The combo can make that number bigger.";
+    std::string text1 = "Tap to the beat of the song!";
+    std::string text2 = "You get 2 points on a hit in the right moment. The combo can make that number bigger.";
     std::string text3 = "You get no points if you hit the ball too soon or too late. You loose 5 points if you miss a ball.";
     std::string text4 = "It's game over if your score drops to 0, so be careful!";
-    std::string text5 = "Select the song via the ARROW KEYS LEFT and RIGHT.";
-    std::string text6 = "Easy mode: All balls are white and you destroy them via left or right mouse-click.";
+    std::string text6 = "Easy mode: All balls are white and you destroy them on the left or right mouse-click.";
     std::string text7 = "Hard mode: Red balls are destroyed on the left mouse-click and the blue ball are destroyed on the right mouse-click.";
     std::string text8 = "Click SPACE to pause the game.";
     std::string text9 = "Select the song via the ARROW KEYS LEFT and RIGHT.";
@@ -42,11 +41,10 @@ void showHelp(GLFWwindow* window) {
         renderText(text2, 120, wHeight - 450, 0.8, 1., 1., 1.);
         renderText(text3, 120, wHeight - 500, 0.8, 1., 1., 1.);
         renderText(text4, 120, wHeight - 550, 0.8, 1., 1., 1.);
-        renderText(text5, 120, wHeight - 600, 0.8, 1., 1., 1.);
         renderText(text6, 120, wHeight - 650, 0.8, 1., 1., 1.);
         renderText(text7, 120, wHeight - 700, 0.8, 1., 1., 1.);
-        renderText(text8, 120, wHeight - 750, 0.8, 1., 1., 1.);
-        renderText(text9, 120, wHeight - 800, 0.8, 1., 1., 1.);
+        renderText(text8, 120, wHeight - 800, 0.8, 1., 1., 1.);
+        renderText(text9, 120, wHeight - 850, 0.8, 1., 1., 1.);
 
         renderText(exitTx, 120, 150, 1, 1., 1., 1.);
 
