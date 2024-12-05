@@ -6,7 +6,8 @@ hop_s = win_s // 2          # hop size
 
 
 folder = '../SoundOfTheBeat/resources/song/'
-filename = folder + 'Dirty Deeds Done Dirt Cheap.wav'
+songName = 'TNT'
+filename = folder + songName + '.wav'
 
 samplerate = 0
 
@@ -35,8 +36,11 @@ while True:
     if read < hop_s: break
 
 
-with open(folder + "Dirty Deeds Done Dirt Cheap.txt", "w") as f:
+with open(folder + songName + ".txt", "w") as f:
     for t in beats:
         f.write(f"{t}\n")
+
+with open(folder + "songList.txt", "a") as f:
+        f.write(f"{songName}\n")
 
 print("Process complete. Results saved to beats.txt")

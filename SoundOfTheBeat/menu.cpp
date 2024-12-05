@@ -54,13 +54,14 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
-            selectedSongInd = (selectedSongInd - 1) % songNames.size();
-            std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
+            selectedSongInd--;
+            if (selectedSongInd < 0) selectedSongInd = songNames.size() - 1;
+            std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
             selectedSongInd = (selectedSongInd + 1) % songNames.size();
-            std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
+            std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
