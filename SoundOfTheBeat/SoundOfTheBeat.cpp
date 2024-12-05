@@ -5,6 +5,29 @@
 #include "textUtil.h"
 
 
+GLFWcursor* createCursor() {
+    int width, height, channels;
+    unsigned char* imageData = stbi_load("resources/cursor/point.png", &width, &height, &channels, 4);
+    if (!imageData) {
+        fprintf(stderr, "Error loading cursor image\n");
+        return NULL;
+    }
+
+    GLFWimage glfwImage;
+    glfwImage.width = width;
+    glfwImage.height = height;
+    glfwImage.pixels = imageData;
+
+    GLFWcursor* cursor = glfwCreateCursor(&glfwImage, width/2, height/2);
+    if (!cursor) {
+        fprintf(stderr, "Error creating cursor from image\n");
+    }
+
+    stbi_image_free(imageData);
+    return cursor;
+}
+
+
 int main()
 {
     std::string path = "scores.txt";
@@ -67,6 +90,10 @@ int main()
         return 5;
     }
 
+    GLFWcursor* cursor = createCursor();
+    if (cursor)
+        glfwSetCursor(window, cursor);
+
     unsigned int basicShader = createShader("basic.vert", "basic.frag");
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
@@ -92,6 +119,9 @@ int main()
 
             stopSongs();
             stopEngine();
+
+            if (cursor)
+                glfwDestroyCursor(cursor);
 
             glfwTerminate();
             return 0;

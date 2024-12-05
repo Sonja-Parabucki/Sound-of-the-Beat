@@ -6,7 +6,10 @@ const double FRAME_TIME = 1.0 / FPS;
 
 Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
 
-    //playSong("resources/song/theme.wav", true, false);
+    //irrklang::ISound* theme = playSong("resources/song/theme.wav", true, false);
+    
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
 
     float vertices[] =
     {  //X    Y       R    G    B    A
@@ -118,7 +121,7 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
 
-    //stopSong();
+    //stopSong(theme);
 
     return Game{ mode, next };
 }

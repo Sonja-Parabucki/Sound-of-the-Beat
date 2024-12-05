@@ -121,6 +121,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song) {
     
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
     /*
     Generisanje temena kruga po jednacini za kruznicu:
     Trebace nam bar X i Y koordinate, posto je boja u fragment sejderu

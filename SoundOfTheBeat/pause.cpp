@@ -5,6 +5,8 @@ const double FRAME_TIME = 1.0 / FPS;
 
 bool pause(GLFWwindow* window, unsigned int shader, int score) {
 
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
     float wWidth = windowWidth();
     float wHeight = windowHeight();
 
