@@ -9,7 +9,7 @@ GLFWcursor* createCursor() {
     int width, height, channels;
     unsigned char* imageData = stbi_load("resources/cursor/point.png", &width, &height, &channels, 4);
     if (!imageData) {
-        fprintf(stderr, "Error loading cursor image\n");
+        std::cout << "Error loading cursor image\n";
         return NULL;
     }
 
@@ -20,7 +20,7 @@ GLFWcursor* createCursor() {
 
     GLFWcursor* cursor = glfwCreateCursor(&glfwImage, width/2, height/2);
     if (!cursor) {
-        fprintf(stderr, "Error creating cursor from image\n");
+        std::cout << "Error creating cursor from image\n";
     }
 
     stbi_image_free(imageData);

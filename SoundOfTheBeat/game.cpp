@@ -96,11 +96,13 @@ void checkShot(GLFWwindow* window, bool leftClick) {
                 streak += 1;
                 setCombo();
                 score += 2 * combo;
+                playEffect();
             }
             else {
                 //the hit is early or late => lose the streak, no points gained or lost
                 streak = 0;
                 setCombo();
+                playMiss();
             }
 
             //std::cout << score << "\n";

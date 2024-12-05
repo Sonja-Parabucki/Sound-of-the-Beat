@@ -2,18 +2,30 @@
 
 
 irrklang::ISoundEngine* engine;
+irrklang::ISoundSource* effect;
+irrklang::ISoundSource* miss;
 
 int startEngine() {
      engine = irrklang::createIrrKlangDevice();
 
     if (!engine)
         return 1; // error starting up the engine
+    effect = engine->addSoundSourceFromFile("resources/cursor/effect.wav");
+    miss = engine->addSoundSourceFromFile("resources/cursor/miss.wav");
 }
 
 irrklang::ISound* playSong(const char* filename, bool loop, bool paused)
 {
     // play some sound stream, looped
     return engine->play2D(filename, loop, paused);
+}
+
+void playEffect() {
+    engine->play2D(effect);
+}
+
+void playMiss() {
+    engine->play2D(miss);
 }
 
 void resumeSong(irrklang::ISound* sound) {
