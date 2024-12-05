@@ -4,7 +4,7 @@ const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
 
-Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
+Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSongInd, std::vector<std::string> songNames) {
 
     //irrklang::ISound* theme = playSong("resources/song/theme.wav", true, false);
     
@@ -50,7 +50,6 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
     std::string mode2Tx = "> [2] Hard";
     std::string highScoreTx = "HIGH SCORE: " + std::to_string(highScore);
 
-
     //render petlja
     glClearColor(0.0, 0.0, 0.1, 1.0);
 
@@ -64,7 +63,6 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         {
             next = 0;
-            //glfwSetWindowShouldClose(window, GL_TRUE);
         }
         if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
         {
@@ -83,27 +81,41 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
             mode1Tx[0] = ' ';
             mode2Tx[0] = '>';
         }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        {
+            selectedSongInd = (selectedSongInd - 1) % songNames.size();
+            std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        {
+            selectedSongInd = (selectedSongInd + 1) % songNames.size();
+            std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
+        }
+
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glUseProgram(shader);
+        //glBindVertexArray(VAO);
+        //glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        //glUseProgram(shader);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);   //_TRIANGLE_STRIP spaja 3. na prethodna 2
-                                            //_TRIANGLE_FAN lepeza, zajednicko prvo teme
-                                            //_LINES po dva temena spaja (glLineWidth(5);), _LINE_STRIP, _LOOP
-                                            //POINTS (glPointSize(5);)
+        //glDrawArrays(GL_TRIANGLES, 0, 3);   //_TRIANGLE_STRIP spaja 3. na prethodna 2
+        //                                    //_TRIANGLE_FAN lepeza, zajednicko prvo teme
+        //                                    //_LINES po dva temena spaja (glLineWidth(5);), _LINE_STRIP, _LOOP
+        //                                    //POINTS (glPointSize(5);)
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        glUseProgram(0);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindVertexArray(0);
+        //glUseProgram(0);
         
 
         renderText(title, 100, wHeight - 200, 2);
-        renderText(startTx, 120, wHeight / 2, 1);
-        renderText(exitTx, 120, wHeight / 2 - 50, 1);
+        renderText(startTx, 120, wHeight / 2 - 100, 1);
+        renderText(exitTx, 120, wHeight / 2 - 180, 1);
         renderText(mode1Tx, wWidth - 400, 200, 0.8);
         renderText(mode2Tx, wWidth - 400, 150, 0.8);
+
+        renderText("[<<] " + songNames.at(selectedSongInd) + " [>>]", 120, wHeight / 2 + 100, 1);
+        
         renderText(highScoreTx, 120, 150, 1.2);
 
 
@@ -123,5 +135,5 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore) {
 
     //stopSong(theme);
 
-    return Game{ mode, next };
+    return Game{ mode, next, selectedSongInd };
 }

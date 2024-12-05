@@ -1,9 +1,9 @@
-#include <iostream>
 #include "menu.h"
 #include "game.h"
 #include "pause.h"
 #include "textUtil.h"
 
+const std::string SONG_FOLDER = "resources/song/";
 
 GLFWcursor* createCursor() {
     int width, height, channels;
@@ -27,6 +27,36 @@ GLFWcursor* createCursor() {
     return cursor;
 }
 
+std::vector<std::string> loadSongNames() {
+    std::vector<std::string> songNames;
+    std::string path = SONG_FOLDER + "songList.txt";
+    std::string name;
+    std::ifstream fin(path);
+    if (fin && fin.is_open()) {
+        while (std::getline(fin, name)) {
+            songNames.push_back(name);
+            std::cout << "NAME: " << name << std::endl;
+        }
+        fin.close();
+    }
+    return songNames;
+}
+
+std::vector<double> loadSong(std::string songName) {
+    std::cout << "Loading beats for " << songName << std::endl;
+    std::string beat_path = SONG_FOLDER + songName + ".txt";
+    std::vector<double> beats;
+    double beat;
+    std::ifstream fin_beat(beat_path);
+    if (fin_beat && fin_beat.is_open()) {
+        while ((fin_beat >> beat))
+            beats.push_back(beat);
+        fin_beat.close();;
+        std::cout << "Loaded beats for " << songName << std::endl;
+    }
+    return beats;
+}
+
 
 int main()
 {
@@ -40,16 +70,8 @@ int main()
     }
     std::cout << highScore << " = HIGH SCORE\n";
 
-    
-    std::string beat_path = "resources/song/beats.txt";
-    std::vector<double> beats;
-    double beat;
-    std::ifstream fin_beat(beat_path);
-    if (fin_beat && fin_beat.is_open()) {
-        while ((fin_beat >> beat))
-            beats.push_back(beat);
-        fin_beat.close();;
-    }
+    std::vector<std::string> songNames = loadSongNames();
+    int selectedSongInd = 0;
 
 
     if (!glfwInit())
@@ -104,12 +126,11 @@ int main()
     //game song
     irrklang::ISound* song;
 
+    std::vector<double> beats = loadSong(songNames.at(selectedSongInd));
+
     GameState gameState;
     while (true) {
-        song = playSong("resources/song/theme.wav", false, true);
-        std::cout << "posle " << song->getPlayPosition() << '\n';
-
-        Game gameInstance = menu(window, basicShader, highScore);
+        Game gameInstance = menu(window, basicShader, highScore, selectedSongInd, songNames);
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
@@ -126,6 +147,12 @@ int main()
             glfwTerminate();
             return 0;
         }
+        selectedSongInd = gameInstance.selectedSongInd;
+        std::vector<double> beats = loadSong(songNames.at(selectedSongInd));
+        //std::cout << selectedSongInd << '\n';
+        std::string songPath = SONG_FOLDER + songNames.at(selectedSongInd) + ".wav";
+        song = playSong(songPath.c_str(), false, true);
+
         //start new game
         gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
         while (true) {

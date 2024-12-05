@@ -27,6 +27,7 @@ unsigned int windowHeight();
 struct Game {
 	int mode;
 	int next;
+    int selectedSongInd;
 };
 
 struct Ball {

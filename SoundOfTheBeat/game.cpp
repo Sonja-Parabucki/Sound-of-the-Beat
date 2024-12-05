@@ -60,6 +60,7 @@ void updateBalls() {
             score -= 5;
             combo = 1;
             streak = 0;
+            playRay();
             //std::cout << score << "\n";
         }
 
@@ -245,7 +246,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     while (score > 0 && !endGame) {
         renderStart = glfwGetTime();
 
-        if (balls.empty() && lastBeat == beats.size()) {
+        if (balls.empty() && lastBeat == beatTimes.size()) {
             gameState.score = score;
             gameState.streak = streak;
             gameState.balls = balls;
@@ -285,7 +286,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         //generate new balls
         double t = glfwGetTime();
-        if ((beats.size() > lastBeat) && (beats.at(lastBeat) - t < 0.5)) {
+        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 0.5)) {
             generateBall(lastBeat);
             lastBeat++;
         }
