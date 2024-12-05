@@ -1,4 +1,5 @@
 #pragma once
 #include "textUtil.h"
+#include <map>
 
-Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSongInd, std::vector<std::string> songNames);
+Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> songs, std::string selectedSongName);

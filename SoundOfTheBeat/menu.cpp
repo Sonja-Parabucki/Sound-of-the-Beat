@@ -4,7 +4,7 @@ const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
 
-Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSongInd, std::vector<std::string> songNames) {
+Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> songs, std::string selectedSongName) {
 
     //irrklang::ISound* theme = playSong("resources/song/theme.wav", true, false);
     
@@ -19,7 +19,13 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
     std::string exitTx = "[Q]uit";
     std::string mode1Tx = "[1] Easy";
     std::string mode2Tx = "[2] Hard";
-    std::string highScoreTx = "HIGH SCORE: " + std::to_string(highScore);
+    std::string highScoreTx = "HIGH SCORE: ";
+
+    std::map<std::string, int>::iterator iter = songs.begin();
+    for (iter = songs.begin(); iter != songs.end(); iter++) {
+        if (iter->first == selectedSongName)
+            break;
+    }
 
     //render petlja
     glClearColor(0.0, 0.0, 0.1, 1.0);
@@ -54,13 +60,17 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
-            selectedSongInd--;
-            if (selectedSongInd < 0) selectedSongInd = songNames.size() - 1;
+            if (iter == songs.begin()) iter = songs.end();
+            iter--;
+            //selectedSongInd--;
+            //if (selectedSongInd < 0) selectedSongInd = songNames.size() - 1;
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
-            selectedSongInd = (selectedSongInd + 1) % songNames.size();
+            iter++;
+            if (iter == songs.end()) iter = songs.begin();
+            //selectedSongInd = (selectedSongInd + 1) % songs.size();
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
 
@@ -80,9 +90,9 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
             renderText(mode2Tx, wWidth - 400, 150, 0.8, 0., 0.82, 0.8);
         }
 
-        renderText("[<<] " + songNames.at(selectedSongInd) + " [>>]", 120, wHeight / 2 + 100, 1, 0.84, 0.85, 0.94);
+        renderText("[<<] " + iter->first + " [>>]", 120, wHeight / 2 + 100, 1, 0.84, 0.85, 0.94);
         
-        renderText(highScoreTx, 120, 150, 1.2, 1., 1., 1.);
+        renderText(highScoreTx + std::to_string(iter->second), 120, 150, 1.2, 1., 1., 1.);
 
 
         glfwSwapBuffers(window);
@@ -97,5 +107,5 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
 
     //stopSong(theme);
 
-    return Game{ mode, next, selectedSongInd };
+    return Game{ mode, next, iter->first };
 }

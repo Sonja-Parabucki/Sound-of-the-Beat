@@ -27,7 +27,7 @@ unsigned int windowHeight();
 struct Game {
 	int mode;
 	int next;
-    int selectedSongInd;
+    std::string selectedSongName;
 };
 
 struct Ball {

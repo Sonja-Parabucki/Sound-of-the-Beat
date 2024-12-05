@@ -1,14 +1,14 @@
-Dirty Deeds Done Dirt Cheap
-Wake Me Up Before You Go Go
-Another One Bites the Dust
-Eye Of The Tiger
-Dont Stop Me Now
-(I Cant Get No) Satisfaction
-Chippin In
-Doom And Gloom
-Enemy
-I Need a Hero
-Billie Jean
-Never Gonna Give You Up
-TNT
-manamanam
+(I Cant Get No) Satisfaction=3535
+Another One Bites the Dust=0
+Billie Jean=0
+Chippin In=4742
+Dirty Deeds Done Dirt Cheap=0
+Dont Stop Me Now=0
+Doom And Gloom=1749
+Enemy=0
+Eye Of The Tiger=0
+I Need a Hero=0
+Never Gonna Give You Up=0
+TNT=0
+Wake Me Up Before You Go Go=0
+manamanam=0

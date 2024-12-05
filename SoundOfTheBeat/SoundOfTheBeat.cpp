@@ -3,6 +3,7 @@
 #include "pause.h"
 #include "help.h"
 #include "textUtil.h"
+#include <map>
 
 const std::string SONG_FOLDER = "resources/song/";
 
@@ -28,19 +29,30 @@ GLFWcursor* createCursor() {
     return cursor;
 }
 
-std::vector<std::string> loadSongNames() {
-    std::vector<std::string> songNames;
+std::map<std::string, int> loadSongsInfo() {
+    std::map<std::string, int> songs;
+    
     std::string path = SONG_FOLDER + "songList.txt";
-    std::string name;
+    std::string name, line;
+    int score;
+    
     std::ifstream fin(path);
     if (fin && fin.is_open()) {
-        while (std::getline(fin, name)) {
-            songNames.push_back(name);
+        while (std::getline(fin, line)) {
+            auto ind = line.find('=');
+            name = line.substr(0, ind);
+            score = std::stoi(line.substr(ind+1));
+
+            songs.insert(std::pair<std::string, int>(name, score));
+
             std::cout << "NAME: " << name << std::endl;
         }
         fin.close();
     }
-    return songNames;
+    else {
+        std::cout << "JHOFWDHFLHOI";
+    }
+    return songs;
 }
 
 std::vector<double> loadSong(std::string songName) {
@@ -59,21 +71,12 @@ std::vector<double> loadSong(std::string songName) {
 }
 
 
+
 int main()
 {
-    std::string path = "scores.txt";
-    int highScore = 0;
-    std::ifstream fin(path);
-    if (fin && fin.is_open()) {
-        if (!(fin >> highScore))
-            highScore = 0;
-        fin.close();
-    }
-    std::cout << highScore << " = HIGH SCORE\n";
-
-    std::vector<std::string> songNames = loadSongNames();
-    int selectedSongInd = 0;
-
+    std::map<std::string, int> songs = loadSongsInfo();
+    std::string selectedSongName = songs.begin()->first;
+    std::cout << selectedSongName << '\n';
 
     if (!glfwInit())
     {
@@ -126,12 +129,12 @@ int main()
     startEngine();
     //game song
     irrklang::ISound* song;
-
-    std::vector<double> beats = loadSong(songNames.at(selectedSongInd));
+    std::vector<double> beats;
 
     GameState gameState;
     while (true) {
-        Game gameInstance = menu(window, basicShader, highScore, selectedSongInd, songNames);
+        Game gameInstance = menu(window, basicShader, songs, selectedSongName);
+        selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
@@ -152,10 +155,8 @@ int main()
             showHelp(window);
             continue;
         }
-        selectedSongInd = gameInstance.selectedSongInd;
-        std::vector<double> beats = loadSong(songNames.at(selectedSongInd));
-        //std::cout << selectedSongInd << '\n';
-        std::string songPath = SONG_FOLDER + songNames.at(selectedSongInd) + ".wav";
+        std::vector<double> beats = loadSong(gameInstance.selectedSongName);
+        std::string songPath = SONG_FOLDER + gameInstance.selectedSongName + ".wav";
         song = playSong(songPath.c_str(), false, true);
 
         //start new game
@@ -171,10 +172,12 @@ int main()
         stopSong(song);
 
         std::cout << "SCORE: " << gameState.score << std::endl;
-        if (gameState.score > highScore) {
-            highScore = gameState.score;
-            std::ofstream fout(path);
-            fout << highScore << std::endl;
+        if (gameState.score > songs[gameInstance.selectedSongName]) {
+            songs[gameInstance.selectedSongName] = gameState.score;
+
+            std::ofstream fout(SONG_FOLDER + "songList.txt");
+            for (auto it = songs.begin(); it != songs.end(); it++)
+                fout << it->first << '=' << it->second << std::endl;
             fout.close();
         }
     }
