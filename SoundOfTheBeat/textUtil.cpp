@@ -98,6 +98,9 @@ void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, fl
     unsigned uTexLoc = glGetUniformLocation(letterShader, "uTex");
     glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
 
+    unsigned uTextColLoc = glGetUniformLocation(letterShader, "uTextCol");
+    glUniform3f(uTextColLoc, 1.0, 1.0, 1.0);
+
     glm::mat4 projection = glm::ortho(0.0f, wWidth, 0.0f, wHeight);
     unsigned uProjectionLoc = glGetUniformLocation(letterShader, "projection");
     glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -112,11 +115,14 @@ void deallocateLetterResources() {
 }
 
 
-void renderText(std::string text, float x, float y, float scale) {
+void renderText(std::string text, float x, float y, float scale, float r, float g, float b) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
     glUseProgram(letterShader);
+
+    unsigned uTextColLoc = glGetUniformLocation(letterShader, "uTextCol");
+    glUniform3f(uTextColLoc, r, g, b);
 
     std::string::const_iterator itc;
     for (itc = text.begin(); itc != text.end(); itc++) {

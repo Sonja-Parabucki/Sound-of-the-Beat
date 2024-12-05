@@ -11,7 +11,7 @@ bool pause(GLFWwindow* window, unsigned int shader, int score) {
     float wHeight = windowHeight();
 
     std::string title = "GAME PAUSED";
-    std::string startTx = "press [ENTER] to CONTINUE";
+    std::string startTx = "[ENTER] to CONTINUE";
     std::string exitTx = "[ESC] back to MENI";
     std::string scoreTx = "SCORE: " + std::to_string(score);
 
@@ -36,10 +36,10 @@ bool pause(GLFWwindow* window, unsigned int shader, int score) {
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        renderText(title, 100, wHeight - 200, 2);
-        renderText(startTx, 120, wHeight / 2, 1);
-        renderText(exitTx, 120, wHeight / 2 - 50, 1);
-        renderText(scoreTx, 120, 150, 1.2);
+        renderText(title, 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
+        renderText(startTx, 120, wHeight / 2, 1, 1., 1., 1.);
+        renderText(exitTx, 120, wHeight / 2 - 80, 1, 1., 1., 1.);
+        renderText(scoreTx, 120, 150, 1.2, 1., 1., 1.);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

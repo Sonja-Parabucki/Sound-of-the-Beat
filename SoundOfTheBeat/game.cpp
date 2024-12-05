@@ -335,11 +335,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         glBindVertexArray(0);
 
         scoreTx = "SCORE: " + std::to_string(score);
-        renderText(scoreTx, 20, 50, 1);
+        renderText(scoreTx, 20, 50, 1, 1.0, 1.0, 1.0);
 
         comboTx = 'x' + std::to_string(combo);
-        renderText(comboTx, 20, 10, 0.8);
-        renderText("TEMP:" + std::to_string(temp), 0, 0, 0.5);
+        renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
+        //renderText("TEMP:" + std::to_string(temp), 0, 0, 0.5);
         
         glfwSwapBuffers(window);
         glfwPollEvents();

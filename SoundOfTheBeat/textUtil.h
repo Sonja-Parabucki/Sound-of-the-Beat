@@ -13,6 +13,4 @@ void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, fl
 
 void deallocateLetterResources();
 
-//void loadChars(FT_Library ft, FT_Face face);
-
-void renderText(std::string text, float x, float y, float scale);
+void renderText(std::string text, float x, float y, float scale, float r, float g, float b);
