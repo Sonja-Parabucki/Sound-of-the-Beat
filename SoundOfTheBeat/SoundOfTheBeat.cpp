@@ -1,6 +1,7 @@
 #include "menu.h"
 #include "game.h"
 #include "pause.h"
+#include "help.h"
 #include "textUtil.h"
 
 const std::string SONG_FOLDER = "resources/song/";
@@ -146,6 +147,10 @@ int main()
 
             glfwTerminate();
             return 0;
+        }
+        if (gameInstance.next == 2) {
+            showHelp(window);
+            continue;
         }
         selectedSongInd = gameInstance.selectedSongInd;
         std::vector<double> beats = loadSong(songNames.at(selectedSongInd));

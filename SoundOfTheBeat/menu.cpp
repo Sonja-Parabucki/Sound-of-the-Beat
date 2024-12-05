@@ -15,6 +15,7 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
 
     std::string title = "SOUND OF THE BEAT";
     std::string startTx = "[ENTER] to START";
+    std::string helpTx = "[H]ow to play";
     std::string exitTx = "[Q]uit";
     std::string mode1Tx = "[1] Easy";
     std::string mode2Tx = "[2] Hard";
@@ -37,6 +38,10 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
         if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
         {
             next = 1;
+        }
+        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+        {
+            next = 2;
         }
         if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
         {
@@ -61,8 +66,10 @@ Game menu(GLFWwindow* window, unsigned int shader, int highScore, int selectedSo
         glClear(GL_COLOR_BUFFER_BIT);
       
         renderText(title, 100, wHeight - 200, 2, 0.78, 0.94, 0.93);
-        renderText(startTx, 120, wHeight / 2 - 100, 1, 1., 1., 1.);
-        renderText(exitTx, 120, wHeight / 2 - 180, 1, 1., 1., 1.);
+        renderText(startTx, 120, wHeight / 2 - 80, 1, 1., 1., 1.);
+        renderText(helpTx, 120, wHeight / 2 - 140, 1, 1., 1., 1.);
+        renderText(exitTx, 120, wHeight / 2 - 200, 1, 1., 1., 1.);
+
         if (mode == 0) {
             renderText(mode1Tx, wWidth - 400, 200, 0.8, 0., 0.82, 0.8);
             renderText(mode2Tx, wWidth - 400, 150, 0.8, 0., 0.52, 0.5);

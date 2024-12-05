@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="help.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="setup.cpp" />
@@ -166,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
+    <ClInclude Include="help.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="pause.h" />
     <ClInclude Include="setup.h" />
