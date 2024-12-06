@@ -1,10 +1,8 @@
 #include "menu.h"
 
-const double FPS = 60.0;
-const double FRAME_TIME = 1.0 / FPS;
 
 
-Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> songs, std::string selectedSongName) {
+Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -60,15 +58,12 @@ Game menu(GLFWwindow* window, unsigned int shader, std::map<std::string, int> so
         {
             if (iter == songs.begin()) iter = songs.end();
             iter--;
-            //selectedSongInd--;
-            //if (selectedSongInd < 0) selectedSongInd = songNames.size() - 1;
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
             iter++;
             if (iter == songs.end()) iter = songs.begin();
-            //selectedSongInd = (selectedSongInd + 1) % songs.size();
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
 

@@ -1,4 +1,4 @@
 #pragma once
 #include "textUtil.h"
 
-bool pause(GLFWwindow* window, unsigned int shader, int score);
+bool pause(GLFWwindow* window, int score);

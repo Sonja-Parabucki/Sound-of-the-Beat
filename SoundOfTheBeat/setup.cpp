@@ -94,10 +94,6 @@ unsigned int loadImageToTexture(const char* filePath) {
     unsigned char* ImageData = stbi_load(filePath, &TextureWidth, &TextureHeight, &TextureChannels, 0);
     if (ImageData != NULL)
     {
-        //Slike se osnovno ucitavaju naopako pa se moraju ispraviti da budu uspravne
-        //stbi__vertical_flip(ImageData, TextureWidth, TextureHeight, TextureChannels);
-
-        // Proverava koji je format boja ucitane slike
         GLint InternalFormat = -1;
         switch (TextureChannels) {
         case 1: InternalFormat = GL_RED; break;
@@ -112,7 +108,7 @@ unsigned int loadImageToTexture(const char* filePath) {
         glBindTexture(GL_TEXTURE_2D, Texture);
         glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, TextureWidth, TextureHeight, 0, InternalFormat, GL_UNSIGNED_BYTE, ImageData);
         glBindTexture(GL_TEXTURE_2D, 0);
-        // oslobadjanje memorije zauzete sa stbi_load posto vise nije potrebna
+
         stbi_image_free(ImageData);
         return Texture;
     }

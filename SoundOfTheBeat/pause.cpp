@@ -1,9 +1,7 @@
 #include "pause.h"
 
-const double FPS = 60.0;
-const double FRAME_TIME = 1.0 / FPS;
 
-bool pause(GLFWwindow* window, unsigned int shader, int score) {
+bool pause(GLFWwindow* window, int score) {
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 

@@ -2,7 +2,7 @@
 #include <random>
 
 
-#define CRES 30 // circle resoloution
+#define CRES 30
 #define SPEED 0.01
 #define INFLATION_SPEED 0.6
 #define r 0.08
@@ -10,10 +10,6 @@
 #define DEATH_RAY_Y -LIMIT + 0.05
 #define DEATH_RAY_FRAMES 6
 
-const double FPS = 60.0;
-const double FRAME_TIME = 1.0 / FPS;
-
-double temp;
 
 std::vector<double> beatTimes;
 int lastBeat;
@@ -61,7 +57,6 @@ void updateBalls() {
             combo = 1;
             streak = 0;
             playRay();
-            //std::cout << score << "\n";
         }
 
         if (it->hit)
@@ -90,8 +85,6 @@ void checkShot(GLFWwindow* window, bool leftClick) {
 
         if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
             double t = glfwGetTime();
-
-            temp = t - it->timeToHit;
             
             if (abs(t - it->timeToHit) < 0.5) {
                 streak += 1;
@@ -106,7 +99,6 @@ void checkShot(GLFWwindow* window, bool leftClick) {
                 playMiss();
             }
 
-            //std::cout << score << "\n";
             it->hit = true;
             return;
         }
@@ -131,8 +123,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     vertices[1] = 0;
     for (int i = 0; i <= CRES; i++)
     {
-        vertices[2 + 2 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES)); //Xi (Matematicke funkcije rade sa radijanima)
-        vertices[2 + 2 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES)); //Yi
+        vertices[2 + 2 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES));
+        vertices[2 + 2 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES));
     }
     int rayInd = (CRES + 2) * 2;
     int rayEndXAlpha = rayInd + 2;
@@ -185,15 +177,15 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     if (logoTexture != 0) {
         glBindTexture(GL_TEXTURE_2D, logoTexture);
         glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         glUseProgram(texShader);
         unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
-        glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
+        glUniform1i(uTexLoc, 0);
         unsigned int uTexAspectLoc = glGetUniformLocation(texShader, "uAspect");
         glUniform1f(uTexAspectLoc, aspectRatio);
         glUseProgram(0);
@@ -257,7 +249,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         if (logoTexture != 0) {
             glUseProgram(texShader);
             glBindVertexArray(VAOtex);
-            glActiveTexture(GL_TEXTURE0); //tekstura koja se bind-uje nakon ovoga ce se koristiti sa SAMPLER2D uniformom u sejderu koja odgovara njenom indeksu
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, logoTexture);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -323,7 +315,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         comboTx = 'x' + std::to_string(combo);
         renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
-        //renderText("TEMP:" + std::to_string(temp), 0, 0, 0.5);
         
         glfwSwapBuffers(window);
         glfwPollEvents();

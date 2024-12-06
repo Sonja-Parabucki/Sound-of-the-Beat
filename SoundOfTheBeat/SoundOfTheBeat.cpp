@@ -44,13 +44,8 @@ std::map<std::string, int> loadSongsInfo() {
             score = std::stoi(line.substr(ind+1));
 
             songs.insert(std::pair<std::string, int>(name, score));
-
-            std::cout << "NAME: " << name << std::endl;
         }
         fin.close();
-    }
-    else {
-        std::cout << "JHOFWDHFLHOI";
     }
     return songs;
 }
@@ -133,7 +128,7 @@ int main()
 
     GameState gameState;
     while (true) {
-        Game gameInstance = menu(window, basicShader, songs, selectedSongName);
+        Game gameInstance = menu(window, songs, selectedSongName);
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
             glDeleteProgram(basicShader);
@@ -163,7 +158,7 @@ int main()
         gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
         while (true) {
             if (game(window, ballShader, rayShader, texShader, gameState, beats, song, (songPath + ".png").c_str()) == 1) {
-                if (pause(window, basicShader, gameState.score))
+                if (pause(window, gameState.score))
                     break; //back to menu
             }
             else break; //finished the song till the end

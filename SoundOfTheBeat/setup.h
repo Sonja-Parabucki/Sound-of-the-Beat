@@ -12,6 +12,9 @@
 #include "stb.h"
 #include "song.h"
 
+const double FPS = 60.0;
+const double FRAME_TIME = 1.0 / FPS;
+
 
 unsigned int compileShader(GLenum type, const char* source);
 unsigned int createShader(const char* vsSource, const char* fsSource);
@@ -33,7 +36,6 @@ struct Game {
 struct Ball {
     float x, y;
     double timeToHit;
-    //svaka svoju brzinu?
     bool hit;
     float inflation;
     bool red;

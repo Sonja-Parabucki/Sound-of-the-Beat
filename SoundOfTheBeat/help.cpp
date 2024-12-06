@@ -1,7 +1,5 @@
 #include "help.h"
 
-const double FPS = 60.0;
-const double FRAME_TIME = 1.0 / FPS;
 
 void showHelp(GLFWwindow* window) {
 

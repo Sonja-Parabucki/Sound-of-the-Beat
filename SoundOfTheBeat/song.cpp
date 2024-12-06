@@ -19,7 +19,6 @@ int startEngine() {
 
 irrklang::ISound* playSong(const char* filename, bool loop, bool paused)
 {
-    // play some sound stream, looped
     return engine->play2D(filename, loop, paused);
 }
 
@@ -53,5 +52,5 @@ void stopSongs() {
 }
 
 void stopEngine() {
-    engine->drop(); // delete engine
+    engine->drop();
 }

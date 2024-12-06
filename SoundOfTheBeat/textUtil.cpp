@@ -96,7 +96,7 @@ void createLetterShader(const char* vertsh, const char* fragsh, float wWidth, fl
     letterShader = createShader(vertsh, fragsh);
     glUseProgram(letterShader);
     unsigned uTexLoc = glGetUniformLocation(letterShader, "uTex");
-    glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
+    glUniform1i(uTexLoc, 0);
 
     unsigned uTextColLoc = glGetUniformLocation(letterShader, "uTextCol");
     glUniform3f(uTextColLoc, 1.0, 1.0, 1.0);
