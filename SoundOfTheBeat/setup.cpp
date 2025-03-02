@@ -141,11 +141,11 @@ void initVABO(const float* vertices, size_t verticesLength, unsigned int stride,
     else
         glBufferData(GL_ARRAY_BUFFER, verticesLength * sizeof(float), vertices, GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0); //x, y
     glEnableVertexAttribArray(0);
 
-    if (stride == 4 * sizeof(float)) {
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float))); //texture (s, t)
+    if (stride == 5 * sizeof(float)) {
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))); //texture (s, t)
         glEnableVertexAttribArray(1);
     }
 

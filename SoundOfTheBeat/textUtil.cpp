@@ -68,8 +68,8 @@ void loadChars(FT_Library ft, FT_Face face) {
 
 
 void initTextVABO() {
-    float vertices[24]{}; //6 * (2 + 2)
-    initVABO(vertices, sizeof(vertices), 4 * sizeof(float), &VAO, &VBO, false);
+    float vertices[30]{}; //6 * (3 + 2)
+    initVABO(vertices, sizeof(vertices), 5 * sizeof(float), &VAO, &VBO, false);
 }
 
 
@@ -134,14 +134,14 @@ void renderText(std::string text, float x, float y, float scale, float r, float 
         float w = c.sizeX * scale;
         float h = c.sizeY * scale;
 
-        float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos,     ypos,       0.0f, 1.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
+        float vertices[6][5] = {
+            { xpos,     ypos + h, 0.0f,  0.0f, 0.0f },
+            { xpos,     ypos,     0.0f,  0.0f, 1.0f },
+            { xpos + w, ypos,     0.0f,  1.0f, 1.0f },
 
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-            { xpos + w, ypos + h,   1.0f, 0.0f }
+            { xpos,     ypos + h, 0.0f,  0.0f, 0.0f },
+            { xpos + w, ypos,     0.0f,  1.0f, 1.0f },
+            { xpos + w, ypos + h, 0.0f,  1.0f, 0.0f }
         };
 
         glBindTexture(GL_TEXTURE_2D, c.textureID);

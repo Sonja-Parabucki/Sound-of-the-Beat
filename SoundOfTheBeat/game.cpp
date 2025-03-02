@@ -3,7 +3,7 @@
 
 
 #define CRES 30
-#define SPEED 0.01
+#define SPEED 0.005
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define LIMIT 0.75
@@ -118,43 +118,48 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    float vertices[(CRES + 2) * 2 + 8];
+    float vertices[(CRES + 3 + 4) * 3]; //+4 for the ray points
     vertices[0] = 0;
     vertices[1] = 0;
+    vertices[2] = 0;
     for (int i = 0; i <= CRES; i++)
     {
-        vertices[2 + 2 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES));
-        vertices[2 + 2 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES));
+        vertices[3 + 3 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES));
+        vertices[3 + 3 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES));
+        vertices[3 + 3 * i + 2] = 0;    //z
     }
-    int rayInd = (CRES + 2) * 2;
+    int rayInd = (CRES + 3) * 3;
     int rayEndXAlpha = rayInd + 2;
     int rayEndXBeta = rayInd + 6;
-    //concentrated ray 
+    //concentrated ray (alpha)
     vertices[rayInd] = -1.0;     // x1
     vertices[rayInd + 1] = DEATH_RAY_Y; // y1
-    vertices[rayInd + 2] = 1.0;  // x2
-    vertices[rayInd + 3] = DEATH_RAY_Y;  // y2
-    //ray effect
-    vertices[rayInd + 4] = -1.0;     // x1
-    vertices[rayInd + 5] = DEATH_RAY_Y; // y1
-    vertices[rayInd + 6] = 1.0;  // x2
-    vertices[rayInd + 7] = DEATH_RAY_Y;  // y2
+    vertices[rayInd + 2] = 1.0;  // z1
+    vertices[rayInd + 3] = 1.0;  // x2
+    vertices[rayInd + 4] = DEATH_RAY_Y; // y2
+    vertices[rayInd + 5] = 1.0; // z2
+    //ray effect (beta)
+    vertices[rayInd + 6] = -1.0;     // x1
+    vertices[rayInd + 7] = DEATH_RAY_Y; // y1
+    vertices[rayInd + 8] = 1.0;  // z1
+    vertices[rayInd + 9] = 1.0;  // x2
+    vertices[rayInd + 10] = DEATH_RAY_Y; // y2
+    vertices[rayInd + 11] = 1.0; // z2
     
     unsigned int VAO, VBO;
-    initVABO(vertices, sizeof(vertices), 2 * sizeof(float), &VAO, &VBO, true);
+    initVABO(vertices, sizeof(vertices), 3 * sizeof(float), &VAO, &VBO, true);
 
     //background logo
     float logo[] =
-    {   //X        Y      S    T 
-        -LIMIT, -LIMIT,  0.0, 0.0,
-        -LIMIT,  LIMIT,  0.0, 1.0,
-         LIMIT, -LIMIT,  1.0, 0.0,
-         LIMIT,  LIMIT,  1.0, 1.0,
+    {   // X       Y    Z     S    T 
+        -LIMIT, -LIMIT, -1,  0.0, 0.0,
+        -LIMIT,  LIMIT, -1,  0.0, 1.0,
+         LIMIT, -LIMIT, -1,  1.0, 0.0,
+         LIMIT,  LIMIT, -1,  1.0, 1.0,
     };
-    unsigned int stride = 4 * sizeof(float);
 
     unsigned int VAOtex, VBOtex;
-    initVABO(logo, sizeof(logo), 4 * sizeof(float), &VAOtex, &VBOtex, true);
+    initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
 
 
     //shaders
