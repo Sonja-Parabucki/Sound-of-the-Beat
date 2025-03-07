@@ -3,10 +3,12 @@
 
 
 #define CRES 30
-#define SPEED 0.005
+#define SPEED 0.05
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define LIMIT 0.75
+#define GEN_LIMIT 0.35
+#define Z_LIMIT 8.0
 #define DEATH_RAY_Y -LIMIT + 0.05
 #define DEATH_RAY_FRAMES 6
 
@@ -22,9 +24,20 @@ int mode;
 int deathRayDuration = 0;   //in frames
 float deathRayX;
 
+glm::vec3 cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
+glm::mat4 projectionView;
+glm::mat4 view;
+glm::mat4 viewInverse;
+glm::mat4 projection;
+glm::mat4 projectionInverse;
 
-float randomX() {
-    return -LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (LIMIT*2)));
+
+float random() {
+    return -GEN_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (GEN_LIMIT *2)));
+}
+
+float random(float a, float b) {
+    return a + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (b-a)));
 }
 
 void setCombo() {
@@ -36,23 +49,23 @@ void setCombo() {
 
 void generateBall(int beatInd) {
     if (beatInd >= beatTimes.size()) {
-        std::cout<< beatTimes.size() << "\n";
         return;
     }
-    Ball ball{ randomX(), 1.0, beatTimes.at(beatInd), false, 1};
+    Ball ball{ glm::vec3(random(), random(), 0.f), beatTimes.at(beatInd), false, 1};
+
     if (mode == 1)
-        ball.red = ball.x <= 0;
+        ball.red = ball.pos[0] <= 0;
     balls.push_back(ball);
 }
 
 void updateBalls() {
     for (auto it = balls.begin(); it != balls.end();) {
-        it->y -= SPEED;
+        it->pos[2] += SPEED;
         
-        if (it->y <= DEATH_RAY_Y && !it->hit) {   // => miss
+        if (it->pos[2] >= Z_LIMIT * 0.95 && !it->hit) {   // => miss
             it->hit = true;
-            deathRayX = it->x;
-            deathRayDuration = DEATH_RAY_FRAMES;
+            //deathRayX = it->pos[0];
+            //deathRayDuration = DEATH_RAY_FRAMES;
             score -= 5;
             combo = 1;
             streak = 0;
@@ -62,13 +75,12 @@ void updateBalls() {
         if (it->hit)
             it->inflation *= INFLATION_SPEED;
 
-        if (it->y < -1.0 - r)   //fell off from the screen
+        if (it->pos[2] > Z_LIMIT)   //fell off from the screen
             it = balls.erase(it);
         else
             ++it;
     }
 }
-
 
 void checkShot(GLFWwindow* window, bool leftClick) {
     double mouseX, mouseY;
@@ -76,16 +88,29 @@ void checkShot(GLFWwindow* window, bool leftClick) {
     float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
     float ndcY = 1.0f - 2.0f * (mouseY / wHeight);
 
+    glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
+
+    glm::vec4 rayEye = glm::inverse(projection) * rayClip;
+    rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+
+    glm::vec3 rayWorld = glm::vec3(glm::inverse(view) * rayEye);
+    rayWorld = glm::normalize(rayWorld);
+
     for (auto it = balls.begin(); it != balls.end(); ++it) {
-        if (it->hit) {
+        if (it->hit)
             continue;
-        }
+        
         if (mode == 1 && it->red != leftClick)
             continue;
 
-        if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
+        glm::vec3 oc = cameraAt - it->pos;
+        float a = glm::dot(rayWorld, rayWorld);
+        float b = 2.0f * glm::dot(oc, rayWorld);
+        float c = glm::dot(oc, oc) - r * r;
+        float discriminant = b * b - 4 * a * c;
+
+        if (discriminant >= 0) {
             double t = glfwGetTime();
-            
             if (abs(t - it->timeToHit) < 0.5) {
                 streak += 1;
                 setCombo();
@@ -152,27 +177,81 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //background logo
     float logo[] =
     {   // X       Y    Z     S    T 
-        -LIMIT, -LIMIT, -1,  0.0, 0.0,
-        -LIMIT,  LIMIT, -1,  0.0, 1.0,
-         LIMIT, -LIMIT, -1,  1.0, 0.0,
-         LIMIT,  LIMIT, -1,  1.0, 1.0,
+        -LIMIT, -LIMIT, 0,  0.0, 0.0,
+        -LIMIT,  LIMIT, 0,  0.0, 1.0,
+         LIMIT, -LIMIT, 0,  1.0, 0.0,
+         LIMIT,  LIMIT, 0,  1.0, 1.0,
     };
-
     unsigned int VAOtex, VBOtex;
     initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
 
+    //TEST
+    /*
+    float testver[] =
+    {
+        //X    Y    Z       R    G    B    A
+        0.25, 0.5, 0.75,   1.0, 0.0, 0.0, 0.0, //Crveni trougao - Prednji
+       -0.25, 0.5, 0.75,   1.0, 0.0, 0.0, 0.0,
+        0.0, -0.5, 0.75,   1.0, 0.0, 0.0, 0.0,
+
+        0.25, -0.5, 0.0,   0.0, 0.0, 1.0, 0.0, //Plavi trougao - Zadnji
+       -0.25, -0.5, 0.0,   0.0, 0.0, 1.0, 0.0,
+        0.0,   0.5, 0.0,   0.0, 0.0, 1.0, 0.0
+    };
+    unsigned int stride = (3 + 4) * sizeof(float);
+    unsigned int VAOtest, VBOtest;
+    glGenVertexArrays(1, &VAOtest);
+    glBindVertexArray(VAOtest);
+
+    glGenBuffers(1, &VBOtest);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOtest);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(testver), testver, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    */
+    //TEST END
 
     //shaders
     glUseProgram(shader);
-    unsigned int uRLoc = glGetUniformLocation(shader, "uR");
     unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
-    unsigned int uAspectLoc = glGetUniformLocation(shader, "uAspect");
     unsigned int inflationLoc = glGetUniformLocation(shader, "uInflation");
+
+    unsigned int modelLoc = glGetUniformLocation(shader, "uM");
+    unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
 
     //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
-    float aspectRatio = (float)wHeight / wWidth;
-    glUniform1f(uAspectLoc, aspectRatio);
+    float aspectRatio = (float)wWidth / wHeight;
+
+    //3D matrices
+    glm::mat4 model = glm::mat4(1.0f); //Matrica transformacija - mat4(1.0f) generise jedinicnu matricu
+
+    float yaw = 15;
+    float pitch = -90;
+    glm::vec3 direction = glm::vec3(
+        cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+        sin(glm::radians(pitch)),
+        sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+    ) + glm::vec3(0, -1, 0);
+
+    view = glm::lookAt(cameraAt, direction, glm::vec3(0.0f, 1.0f, 0.0f));
+     //Matrica pogleda (kamere): lookAt(Gde je kamera, u sta kamera gleda, jedinicni vektor pozitivne Y ose sveta  - ovo rotira kameru)
+    viewInverse = glm::inverse(view);
+
+    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
+    projectionInverse = glm::inverse(projection);
+
+    projectionView = projection * view;
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); //(Adresa matrice, broj matrica koje saljemo, da li treba da se transponuju, pokazivac do matrica)
+    glUniformMatrix4fv(projectionViewLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+
     glUseProgram(0);
 
     unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
@@ -191,13 +270,22 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         glUseProgram(texShader);
         unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
         glUniform1i(uTexLoc, 0);
-        unsigned int uTexAspectLoc = glGetUniformLocation(texShader, "uAspect");
-        glUniform1f(uTexAspectLoc, aspectRatio);
+
+        unsigned int modelTexLoc = glGetUniformLocation(texShader, "uM");
+        unsigned int projectionViewTexLoc = glGetUniformLocation(texShader, "uPV");
+        glUniformMatrix4fv(modelTexLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(projectionViewTexLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+
         glUseProgram(0);
     }
+    
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
 
     //setting the game state
     mode = gameState.mode;
@@ -248,7 +336,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             endGame = true;
             break;
         }
-        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        {
+            glEnable(GL_DEPTH_TEST);
+        }
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        {
+            glDisable(GL_DEPTH_TEST);
+        }
+
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //background
         if (logoTexture != 0) {
@@ -263,11 +362,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glBindVertexArray(0);
             glUseProgram(0);
         }
-
+        
 
         //generate new balls
         double t = glfwGetTime();
-        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 1.9)) {
+        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 2.6)) {
             generateBall(lastBeat);
             lastBeat++;
         }
@@ -288,12 +387,32 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             }
 
             glUniform1f(inflationLoc, ball.inflation);
-            glUniform2f(uRLoc, ball.x, ball.y);
+            
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, ball.pos);
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
             glDrawArrays(GL_TRIANGLE_FAN, 0, CRES +2);
         }
         glUseProgram(0);
 
+        //TEST
+        /*
+        glUseProgram(shader);
+        model = glm::mat4(1.0f);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glBindVertexArray(VAOtest);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOtest);
+        glUniform3f(uColLoc, 0.7, 0.05, 0.1);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUniform3f(uColLoc, 0.05, 0., 0.7);
+        glDrawArrays(GL_TRIANGLES, 3, 3);
+        glUseProgram(0);
+        */
+        //TEST end
+
         //death ray definition and rendering
+        /*
         if (deathRayDuration > 0) {
             glUseProgram(rayShader);
             deathRayDuration--;
@@ -312,6 +431,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             
             glUseProgram(0);
         }
+        */
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 

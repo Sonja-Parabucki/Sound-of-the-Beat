@@ -67,7 +67,7 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       
         renderText(title, 100, wHeight - 200, 2, 0.78, 0.94, 0.93);
         renderText("[ENTER]", 120, wHeight / 2 - 80, 1, 0.78, 0.94, 0.93);

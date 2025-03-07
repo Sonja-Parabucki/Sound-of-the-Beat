@@ -17,7 +17,7 @@ void showHelp(GLFWwindow* window) {
     std::string text7 = "Hard mode: Red balls are destroyed on the left mouse-click and the blue ball are destroyed on the right mouse-click.";
     std::string text8 = "Click SPACE to pause the game.";
     std::string text9 = "Select the song via the ARROW KEYS LEFT and RIGHT.";
-    std::string exitTx = "[ESC] back to MENI";
+    std::string exitTx = "[ESC] back to MENU";
 
     //render loop
     glClearColor(0.0, 0.1, 0.0, 1.0);
@@ -30,8 +30,7 @@ void showHelp(GLFWwindow* window) {
         {
             break;
         }
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renderText(title, 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
 
