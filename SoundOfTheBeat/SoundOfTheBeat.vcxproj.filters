@@ -45,9 +45,6 @@
     <ClCompile Include="help.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mousePicking.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -105,9 +102,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="help.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mousePicking.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
