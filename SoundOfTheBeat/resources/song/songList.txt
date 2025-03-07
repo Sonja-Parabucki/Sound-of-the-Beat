@@ -11,4 +11,4 @@ I Need a Hero=457
 Never Gonna Give You Up=742
 TNT=532
 Wake Me Up Before You Go Go=1761
-manamanam=10
+manamanam=14

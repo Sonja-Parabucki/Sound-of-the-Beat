@@ -5,11 +5,10 @@ layout(location = 1) in vec2 inTex;
 out vec2 chTex;
 
 uniform mat4 uM; //model (transformation) matrix
-uniform mat4 uV; //view matrix
-uniform mat4 uP; //projection matrix
+uniform mat4 uPV; //projection * view matrix
 
 void main()
 {
-	gl_Position = uP * uV * uM *  vec4(inPos, 1.0);
+	gl_Position = uPV * uM *  vec4(inPos, 1.0);
 	chTex = inTex;
 }

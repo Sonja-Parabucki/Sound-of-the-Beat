@@ -7,12 +7,11 @@ out vec4 chCol;
 uniform float uInflation;
 
 uniform mat4 uM; //model (transformation) matrix
-uniform mat4 uV; //view matrix
-uniform mat4 uP; //projection matrix
+uniform mat4 uPV; //projection * view matrix
 
 void main()
 {
-	gl_Position = uP * uV * uM * vec4((inPos.x * uInflation),
+	gl_Position = uPV * uM * vec4((inPos.x * uInflation),
 								(inPos.y * uInflation),
 								inPos.z,
 								1.0); 

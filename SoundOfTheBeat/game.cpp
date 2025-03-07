@@ -24,6 +24,8 @@ int mode;
 int deathRayDuration = 0;   //in frames
 float deathRayX;
 
+glm::mat4 projectionView;
+
 
 float random() {
     return -GEN_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (GEN_LIMIT *2)));
@@ -88,7 +90,7 @@ void updateBalls() {
 //izracunam uP*uV = uPV samo jednom u kodu; posto se to ne menja
 //iz sacuvanih podataka lako dobijem uPV * model * pos
 // => imam poziciju trenutnu (MALO CUDNO, DA LI JE TO BAS TAKO?)
-//ista formula, ali ubacim umesto pos -> (ndcX, ndcY, pos[2])
+//ista formula, ali ubacim umesto pos -> (ndcX, ndcY, pos[2])                            - ne
 //ako su matrice dovoljno slicne (oduzmem ih i poredim sa I*k, k iz (0,1)?), pogotak
 
 void checkShot(GLFWwindow* window, bool leftClick) {
@@ -104,9 +106,17 @@ void checkShot(GLFWwindow* window, bool leftClick) {
         if (mode == 1 && it->red != leftClick)
             continue;
 
-        std::cout << it->pos[0] <<  ", " << it->pos[1] << ", " << it->pos[2] << std::endl;
+        std::cout << it->pos[0] <<  "/ " << it->pos[1] << "/ " << it->pos[2] << std::endl;
 
-        if (pow(ndcX - it->pos[0], 2) + pow(ndcY - it->pos[1], 2) <= r * r) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), it->pos);
+        auto position = projectionView * model * glm::vec4(it->pos, 1.0);
+        std::cout << "B " << position[0]/position[3] << ", " << position[1]/position[3] << ", " << position[2]/position[3] << ", " << position[3] << std::endl;
+
+        std::cout << "M " << ndcX << ", " << ndcY << std::endl; //ni blizu
+
+        //dalje istrazivanje potrebno
+
+        if (pow(ndcX - position[0] / position[3], 2) + pow(ndcY - position[1] / position[3], 2) <= 0.1) {
 
             std::cout << "HIT" << std::endl;
 
@@ -224,8 +234,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int inflationLoc = glGetUniformLocation(shader, "uInflation");
 
     unsigned int modelLoc = glGetUniformLocation(shader, "uM");
-    unsigned int viewLoc = glGetUniformLocation(shader, "uV");
-    unsigned int projectionLoc = glGetUniformLocation(shader, "uP");
+    unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
 
     //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
@@ -246,11 +255,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
      //Matrica pogleda (kamere): lookAt(Gde je kamera, u sta kamera gleda, jedinicni vektor pozitivne Y ose sveta  - ovo rotira kameru)
 
     glm::mat4 projectionP = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
-    glm::mat4 projectionO = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f); //Matrica ortogonalne projekcije (Leva, desna, donja, gornja, prednja i zadnja ravan)
     
+    projectionView = projectionP * view;
+
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); //(Adresa matrice, broj matrica koje saljemo, da li treba da se transponuju, pokazivac do matrica)
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionP));
+    glUniformMatrix4fv(projectionViewLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
 
     glUseProgram(0);
 
@@ -272,11 +281,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         glUniform1i(uTexLoc, 0);
 
         unsigned int modelTexLoc = glGetUniformLocation(texShader, "uM");
-        unsigned int viewTexLoc = glGetUniformLocation(texShader, "uV");
-        unsigned int projectionTexLoc = glGetUniformLocation(texShader, "uP");
+        unsigned int projectionViewTexLoc = glGetUniformLocation(texShader, "uPV");
         glUniformMatrix4fv(modelTexLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewTexLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionTexLoc, 1, GL_FALSE, glm::value_ptr(projectionP));
+        glUniformMatrix4fv(projectionViewTexLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
 
         glUseProgram(0);
     }
@@ -348,14 +355,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glDisable(GL_DEPTH_TEST);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-        {
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionP));
-        }
-        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        {
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionO));
-        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
