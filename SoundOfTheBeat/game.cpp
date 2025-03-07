@@ -3,10 +3,12 @@
 
 
 #define CRES 30
-#define SPEED 0.005
+#define SPEED 0.05
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define LIMIT 0.75
+#define GEN_LIMIT 0.35
+#define Z_LIMIT 8.0
 #define DEATH_RAY_Y -LIMIT + 0.05
 #define DEATH_RAY_FRAMES 6
 
@@ -24,7 +26,7 @@ float deathRayX;
 
 
 float random() {
-    return -LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (LIMIT*2)));
+    return -GEN_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (GEN_LIMIT *2)));
 }
 
 float random(float a, float b) {
@@ -42,8 +44,8 @@ void generateBall(int beatInd) {
     if (beatInd >= beatTimes.size()) {
         return;
     }
-    Ball ball{ glm::vec3(random(), random(), random(0, 3)), beatTimes.at(beatInd), false, 1};
-    std::cout << ball.pos[2] << std::endl;
+    Ball ball{ glm::vec3(random(), random(), 0.f), beatTimes.at(beatInd), false, 1};
+    //std::cout << ball.pos[2] << std::endl;
 
     if (mode == 1)
         ball.red = ball.pos[0] <= 0;
@@ -51,15 +53,14 @@ void generateBall(int beatInd) {
 }
 
 void updateBalls() {
-    /*
     for (auto it = balls.begin(); it != balls.end();) {
-        it->y -= SPEED;
+        it->pos[2] += SPEED;
         
-        if (it->y <= DEATH_RAY_Y && !it->hit) {   // => miss
+        if (it->pos[2] >= Z_LIMIT * 0.95 && !it->hit) {   // => miss
             it->hit = true;
-            deathRayX = it->x;
-            deathRayDuration = DEATH_RAY_FRAMES;
-            score -= 5;
+            //deathRayX = it->pos[0];
+            //deathRayDuration = DEATH_RAY_FRAMES;
+            //score -= 5;
             combo = 1;
             streak = 0;
             playRay();
@@ -68,17 +69,29 @@ void updateBalls() {
         if (it->hit)
             it->inflation *= INFLATION_SPEED;
 
-        if (it->y < -1.0 - r)   //fell off from the screen
+        if (it->pos[2] > Z_LIMIT)   //fell off from the screen
+        {
             it = balls.erase(it);
+        }
         else
             ++it;
     }
-    */
 }
 
+//ideja za laser: za svaku loptu, hit?, z u nekom opsegu (oko zlatnog trenutka), proveri gde je mis,
+//pa ako je presao centar (dovoljno blizu), onda je pogodak
+//opet pitanje: kako naci prave koordinate na ekranu da se porede sa koord. misa?
+//svodi se na problem sa trenutnom varijantom prakticno
+// 
+//x i y u pos se ne menjaju od nastanka
+//treba naci trenutne vrednosti
+//izracunam uP*uV = uPV samo jednom u kodu; posto se to ne menja
+//iz sacuvanih podataka lako dobijem uPV * model * pos
+// => imam poziciju trenutnu (MALO CUDNO, DA LI JE TO BAS TAKO?)
+//ista formula, ali ubacim umesto pos -> (ndcX, ndcY, pos[2])
+//ako su matrice dovoljno slicne (oduzmem ih i poredim sa I*k, k iz (0,1)?), pogotak
 
 void checkShot(GLFWwindow* window, bool leftClick) {
-    /*
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
@@ -91,7 +104,12 @@ void checkShot(GLFWwindow* window, bool leftClick) {
         if (mode == 1 && it->red != leftClick)
             continue;
 
-        if (pow(ndcX - it->x, 2) + pow(ndcY - it->y, 2) <= r*r) {
+        std::cout << it->pos[0] <<  ", " << it->pos[1] << ", " << it->pos[2] << std::endl;
+
+        if (pow(ndcX - it->pos[0], 2) + pow(ndcY - it->pos[1], 2) <= r * r) {
+
+            std::cout << "HIT" << std::endl;
+
             double t = glfwGetTime();
             
             if (abs(t - it->timeToHit) < 0.5) {
@@ -111,7 +129,6 @@ void checkShot(GLFWwindow* window, bool leftClick) {
             return;
         }
     }
-    */
 }
 
 
@@ -217,15 +234,15 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //3D matrices
     glm::mat4 model = glm::mat4(1.0f); //Matrica transformacija - mat4(1.0f) generise jedinicnu matricu
 
-    float yaw = 30;
+    float yaw = 15;
     float pitch = -90;
     glm::vec3 direction = glm::vec3(
         cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
         sin(glm::radians(pitch)),
         sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-    );
+    ) + glm::vec3(0, -1, 0);
 
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.f, 8.0f), glm::normalize(direction), glm::vec3(0.0f, 1.0f, 0.0f)); 
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.2f, Z_LIMIT), (direction), glm::vec3(0.0f, 1.0f, 0.0f)); 
      //Matrica pogleda (kamere): lookAt(Gde je kamera, u sta kamera gleda, jedinicni vektor pozitivne Y ose sveta  - ovo rotira kameru)
 
     glm::mat4 projectionP = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
@@ -365,7 +382,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
 
         //draw balls
-        //updateBalls();
+        updateBalls();
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
