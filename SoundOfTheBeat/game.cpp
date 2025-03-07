@@ -24,7 +24,12 @@ int mode;
 int deathRayDuration = 0;   //in frames
 float deathRayX;
 
+glm::vec3 cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
 glm::mat4 projectionView;
+glm::mat4 view;
+glm::mat4 viewInverse;
+glm::mat4 projection;
+glm::mat4 projectionInverse;
 
 
 float random() {
@@ -47,7 +52,6 @@ void generateBall(int beatInd) {
         return;
     }
     Ball ball{ glm::vec3(random(), random(), 0.f), beatTimes.at(beatInd), false, 1};
-    //std::cout << ball.pos[2] << std::endl;
 
     if (mode == 1)
         ball.red = ball.pos[0] <= 0;
@@ -62,7 +66,7 @@ void updateBalls() {
             it->hit = true;
             //deathRayX = it->pos[0];
             //deathRayDuration = DEATH_RAY_FRAMES;
-            //score -= 5;
+            score -= 5;
             combo = 1;
             streak = 0;
             playRay();
@@ -72,26 +76,11 @@ void updateBalls() {
             it->inflation *= INFLATION_SPEED;
 
         if (it->pos[2] > Z_LIMIT)   //fell off from the screen
-        {
             it = balls.erase(it);
-        }
         else
             ++it;
     }
 }
-
-//ideja za laser: za svaku loptu, hit?, z u nekom opsegu (oko zlatnog trenutka), proveri gde je mis,
-//pa ako je presao centar (dovoljno blizu), onda je pogodak
-//opet pitanje: kako naci prave koordinate na ekranu da se porede sa koord. misa?
-//svodi se na problem sa trenutnom varijantom prakticno
-// 
-//x i y u pos se ne menjaju od nastanka
-//treba naci trenutne vrednosti
-//izracunam uP*uV = uPV samo jednom u kodu; posto se to ne menja
-//iz sacuvanih podataka lako dobijem uPV * model * pos
-// => imam poziciju trenutnu (MALO CUDNO, DA LI JE TO BAS TAKO?)
-//ista formula, ali ubacim umesto pos -> (ndcX, ndcY, pos[2])                            - ne
-//ako su matrice dovoljno slicne (oduzmem ih i poredim sa I*k, k iz (0,1)?), pogotak
 
 void checkShot(GLFWwindow* window, bool leftClick) {
     double mouseX, mouseY;
@@ -99,29 +88,29 @@ void checkShot(GLFWwindow* window, bool leftClick) {
     float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
     float ndcY = 1.0f - 2.0f * (mouseY / wHeight);
 
+    glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
+
+    glm::vec4 rayEye = glm::inverse(projection) * rayClip;
+    rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+
+    glm::vec3 rayWorld = glm::vec3(glm::inverse(view) * rayEye);
+    rayWorld = glm::normalize(rayWorld);
+
     for (auto it = balls.begin(); it != balls.end(); ++it) {
-        if (it->hit) {
+        if (it->hit)
             continue;
-        }
+        
         if (mode == 1 && it->red != leftClick)
             continue;
 
-        std::cout << it->pos[0] <<  "/ " << it->pos[1] << "/ " << it->pos[2] << std::endl;
+        glm::vec3 oc = cameraAt - it->pos;
+        float a = glm::dot(rayWorld, rayWorld);
+        float b = 2.0f * glm::dot(oc, rayWorld);
+        float c = glm::dot(oc, oc) - r * r;
+        float discriminant = b * b - 4 * a * c;
 
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), it->pos);
-        auto position = projectionView * model * glm::vec4(it->pos, 1.0);
-        std::cout << "B " << position[0]/position[3] << ", " << position[1]/position[3] << ", " << position[2]/position[3] << ", " << position[3] << std::endl;
-
-        std::cout << "M " << ndcX << ", " << ndcY << std::endl; //ni blizu
-
-        //dalje istrazivanje potrebno
-
-        if (pow(ndcX - position[0] / position[3], 2) + pow(ndcY - position[1] / position[3], 2) <= 0.1) {
-
-            std::cout << "HIT" << std::endl;
-
+        if (discriminant >= 0) {
             double t = glfwGetTime();
-            
             if (abs(t - it->timeToHit) < 0.5) {
                 streak += 1;
                 setCombo();
@@ -251,12 +240,14 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         sin(glm::radians(yaw)) * cos(glm::radians(pitch))
     ) + glm::vec3(0, -1, 0);
 
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.2f, Z_LIMIT), (direction), glm::vec3(0.0f, 1.0f, 0.0f)); 
+    view = glm::lookAt(cameraAt, direction, glm::vec3(0.0f, 1.0f, 0.0f));
      //Matrica pogleda (kamere): lookAt(Gde je kamera, u sta kamera gleda, jedinicni vektor pozitivne Y ose sveta  - ovo rotira kameru)
+    viewInverse = glm::inverse(view);
 
-    glm::mat4 projectionP = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
-    
-    projectionView = projectionP * view;
+    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
+    projectionInverse = glm::inverse(projection);
+
+    projectionView = projection * view;
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); //(Adresa matrice, broj matrica koje saljemo, da li treba da se transponuju, pokazivac do matrica)
     glUniformMatrix4fv(projectionViewLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
@@ -375,7 +366,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         //generate new balls
         double t = glfwGetTime();
-        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 1.9)) {
+        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 2.6)) {
             generateBall(lastBeat);
             lastBeat++;
         }
@@ -440,9 +431,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             
             glUseProgram(0);
         }
+        */
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        */
 
         scoreTx = "SCORE: " + std::to_string(score);
         renderText(scoreTx, 20, 50, 1, 1.0, 1.0, 1.0);
