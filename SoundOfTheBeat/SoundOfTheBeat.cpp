@@ -115,7 +115,6 @@ int main()
     if (cursor)
         glfwSetCursor(window, cursor);
 
-    unsigned int basicShader = createShader("basic.vert", "basic.frag");
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
@@ -131,7 +130,6 @@ int main()
         Game gameInstance = menu(window, songs, selectedSongName);
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
-            glDeleteProgram(basicShader);
             glDeleteProgram(ballShader);
             glDeleteProgram(rayShader);
             glDeleteProgram(texShader);

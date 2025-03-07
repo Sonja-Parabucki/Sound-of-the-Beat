@@ -10,7 +10,7 @@ bool pause(GLFWwindow* window, int score) {
 
     std::string title = "GAME PAUSED";
     std::string startTx = "[ENTER] to CONTINUE";
-    std::string exitTx = "[ESC] back to MENI";
+    std::string exitTx = "[ESC] back to MENU";
     std::string scoreTx = "SCORE: " + std::to_string(score);
 
     //render loop
@@ -31,7 +31,7 @@ bool pause(GLFWwindow* window, int score) {
             //back to the game
             break;
         }
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
         renderText(title, 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
