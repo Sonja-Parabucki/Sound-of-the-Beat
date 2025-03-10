@@ -2,10 +2,9 @@
 #include <random>
 
 
-#define CRES 30
 #define SPEED 0.05
 #define INFLATION_SPEED 0.6
-#define r 0.08
+#define r 0.15
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
 #define Z_LIMIT 8.0
@@ -143,36 +142,28 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    float vertices[(CRES + 3 + 4) * 3]; //+4 for the ray points
-    vertices[0] = 0;
-    vertices[1] = 0;
-    vertices[2] = 0;
-    for (int i = 0; i <= CRES; i++)
-    {
-        vertices[3 + 3 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES));
-        vertices[3 + 3 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES));
-        vertices[3 + 3 * i + 2] = 0;    //z
-    }
-    int rayInd = (CRES + 3) * 3;
-    int rayEndXAlpha = rayInd + 2;
-    int rayEndXBeta = rayInd + 6;
+    /*
+    float vertices[4 * 3];
     //concentrated ray (alpha)
-    vertices[rayInd] = -1.0;     // x1
-    vertices[rayInd + 1] = DEATH_RAY_Y; // y1
-    vertices[rayInd + 2] = 1.0;  // z1
-    vertices[rayInd + 3] = 1.0;  // x2
-    vertices[rayInd + 4] = DEATH_RAY_Y; // y2
-    vertices[rayInd + 5] = 1.0; // z2
+    vertices[0] = -1.0;     // x1
+    vertices[1] = DEATH_RAY_Y; // y1
+    vertices[2] = 1.0;  // z1
+    vertices[3] = 1.0;  // x2
+    vertices[4] = DEATH_RAY_Y; // y2
+    vertices[5] = 1.0; // z2
     //ray effect (beta)
-    vertices[rayInd + 6] = -1.0;     // x1
-    vertices[rayInd + 7] = DEATH_RAY_Y; // y1
-    vertices[rayInd + 8] = 1.0;  // z1
-    vertices[rayInd + 9] = 1.0;  // x2
-    vertices[rayInd + 10] = DEATH_RAY_Y; // y2
-    vertices[rayInd + 11] = 1.0; // z2
+    vertices[6] = -1.0;     // x1
+    vertices[7] = DEATH_RAY_Y; // y1
+    vertices[8] = 1.0;  // z1
+    vertices[9] = 1.0;  // x2
+    vertices[10] = DEATH_RAY_Y; // y2
+    vertices[11] = 1.0; // z2
     
     unsigned int VAO, VBO;
     initVABO(vertices, sizeof(vertices), 3 * sizeof(float), &VAO, &VBO, true);
+    */
+
+    Model modelBall("resources/model/ball.obj");
 
     //background logo
     float logo[] =
@@ -185,37 +176,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int VAOtex, VBOtex;
     initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
 
-    //TEST
-    /*
-    float testver[] =
-    {
-        //X    Y    Z       R    G    B    A
-        0.25, 0.5, 0.75,   1.0, 0.0, 0.0, 0.0, //Crveni trougao - Prednji
-       -0.25, 0.5, 0.75,   1.0, 0.0, 0.0, 0.0,
-        0.0, -0.5, 0.75,   1.0, 0.0, 0.0, 0.0,
-
-        0.25, -0.5, 0.0,   0.0, 0.0, 1.0, 0.0, //Plavi trougao - Zadnji
-       -0.25, -0.5, 0.0,   0.0, 0.0, 1.0, 0.0,
-        0.0,   0.5, 0.0,   0.0, 0.0, 1.0, 0.0
-    };
-    unsigned int stride = (3 + 4) * sizeof(float);
-    unsigned int VAOtest, VBOtest;
-    glGenVertexArrays(1, &VAOtest);
-    glBindVertexArray(VAOtest);
-
-    glGenBuffers(1, &VBOtest);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOtest);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(testver), testver, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    */
-    //TEST END
 
     //shaders
     glUseProgram(shader);
@@ -259,14 +219,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //texture
     unsigned int logoTexture = loadImageToTexture(texturePath);
     if (logoTexture != 0) {
-        glBindTexture(GL_TEXTURE_2D, logoTexture);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
         glUseProgram(texShader);
         unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
         glUniform1i(uTexLoc, 0);
@@ -374,8 +326,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         //draw balls
         updateBalls();
 
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        //glBindVertexArray(VAO);
+        //glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         glUseProgram(shader);
         glUniform3f(uColLoc, 1.0, 1.0, 1.0);
@@ -386,30 +338,16 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
                 else glUniform3f(uColLoc, 0.05, 0., 0.7);
             }
 
+            //TODO scale
             glUniform1f(inflationLoc, ball.inflation);
             
             model = glm::mat4(1.0f);
             model = glm::translate(model, ball.pos);
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-            glDrawArrays(GL_TRIANGLE_FAN, 0, CRES +2);
+            modelBall.Draw(shader);
         }
         glUseProgram(0);
-
-        //TEST
-        /*
-        glUseProgram(shader);
-        model = glm::mat4(1.0f);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glBindVertexArray(VAOtest);
-        glBindBuffer(GL_ARRAY_BUFFER, VBOtest);
-        glUniform3f(uColLoc, 0.7, 0.05, 0.1);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glUniform3f(uColLoc, 0.05, 0., 0.7);
-        glDrawArrays(GL_TRIANGLES, 3, 3);
-        glUseProgram(0);
-        */
-        //TEST end
 
         //death ray definition and rendering
         /*
@@ -417,17 +355,17 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glUseProgram(rayShader);
             deathRayDuration--;
             
-            vertices[rayEndXAlpha] = deathRayX;
-            vertices[rayEndXBeta] = deathRayX;
-            glBufferSubData(GL_ARRAY_BUFFER, rayInd * sizeof(float), 8 * sizeof(float), &vertices[rayInd]);
+            vertices[4] = deathRayX;
+            vertices[9] = deathRayX;
+            glBufferSubData(GL_ARRAY_BUFFER, 0, 8 * sizeof(float), &vertices[0]);
 
             glLineWidth(4.0);
             glUniform1f(uAlphaLoc, 1.0);
-            glDrawArrays(GL_LINES, rayInd / 2, 2);
+            glDrawArrays(GL_LINES, 0, 2);
             
             glLineWidth(10.0);
             glUniform1f(uAlphaLoc, 0.2);
-            glDrawArrays(GL_LINES, rayInd / 2 + 2, 2);
+            glDrawArrays(GL_LINES, 2, 2);
             
             glUseProgram(0);
         }
@@ -451,8 +389,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
     }
 
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    //glDeleteBuffers(1, &VBO);
+    //glDeleteVertexArrays(1, &VAO);
 
     glDeleteTextures(1, &logoTexture);
     glDeleteBuffers(1, &VBOtex);

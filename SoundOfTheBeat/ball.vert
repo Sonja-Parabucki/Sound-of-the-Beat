@@ -13,7 +13,7 @@ void main()
 {
 	gl_Position = uPV * uM * vec4((inPos.x * uInflation),
 								(inPos.y * uInflation),
-								inPos.z,
+								inPos.z * uInflation,
 								1.0); 
 	chCol = inCol;
 }
