@@ -234,6 +234,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     
     unsigned int uLightPosLoc = glGetUniformLocation(shader, "uLightPos");
     glUniform3f(uLightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2]);
+    
+    unsigned int uCamAtLoc = glGetUniformLocation(shader, "uCameraAt");
+    glUniform3f(uCamAtLoc, cameraAt[0], cameraAt[1], cameraAt[2]);
 
     unsigned int modelLoc = glGetUniformLocation(shader, "uM");
     unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
@@ -273,6 +276,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     glm::mat4 modelLight = glm::mat4(1.0f);
     modelLight = glm::translate(modelLight, lightPosition);
     modelLight = glm::scale(modelLight, glm::vec3(0.2f));
+
     unsigned int modelLightLoc = glGetUniformLocation(lightShader, "uM");
     unsigned int projectionViewLightLoc = glGetUniformLocation(lightShader, "uPV");
     glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
