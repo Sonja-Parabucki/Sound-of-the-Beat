@@ -23,6 +23,8 @@ int mode;
 int deathRayDuration = 0;   //in frames
 float deathRayX;
 
+glm::vec3 lightPosition = glm::vec3(0.0f, 0.2f, Z_LIMIT+2);
+
 glm::vec3 cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
 glm::mat4 projectionView;
 glm::mat4 view;
@@ -138,7 +140,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song, const char* texturePath) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
@@ -176,10 +178,63 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int VAOtex, VBOtex;
     initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
 
+    //light source
+    float light[] =
+    {
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f
+    };
+    unsigned int VAOlight, VBOlight;
+    initVABO(light, sizeof(light), 3 * sizeof(float), &VAOlight, &VBOlight, true);
 
     //shaders
     glUseProgram(shader);
     unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
+    unsigned int uLightColLoc = glGetUniformLocation(shader, "uLightCol");
+    glUniform3f(uLightColLoc, 1.0f, 1.0f, 1.0f);
+    
+    unsigned int uLightPosLoc = glGetUniformLocation(shader, "uLightPos");
+    glUniform3f(uLightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2]);
+
     unsigned int modelLoc = glGetUniformLocation(shader, "uM");
     unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
 
@@ -211,7 +266,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     glUseProgram(0);
 
-    unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
+    //unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
+
+    //shader light
+    glUseProgram(lightShader);
+    glm::mat4 modelLight = glm::mat4(1.0f);
+    modelLight = glm::translate(modelLight, lightPosition);
+    modelLight = glm::scale(modelLight, glm::vec3(0.2f));
+    unsigned int modelLightLoc = glGetUniformLocation(lightShader, "uM");
+    unsigned int projectionViewLightLoc = glGetUniformLocation(lightShader, "uPV");
+    glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
+    glUniformMatrix4fv(projectionViewLightLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+    glUseProgram(0);
 
     //texture
     unsigned int logoTexture = loadImageToTexture(texturePath);
@@ -322,6 +388,15 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         //draw balls
         updateBalls();
+
+        //light source
+        glBindVertexArray(VAOlight);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOlight);
+        glUseProgram(lightShader);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glUseProgram(0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         //glBindVertexArray(VAO);
         //glBindBuffer(GL_ARRAY_BUFFER, VBO);

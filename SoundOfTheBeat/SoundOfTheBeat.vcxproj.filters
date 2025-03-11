@@ -81,6 +81,12 @@
     <None Include="letter.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="light.frag">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="light.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="menu.h">
