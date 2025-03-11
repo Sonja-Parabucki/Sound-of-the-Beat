@@ -4,7 +4,7 @@
 
 #define SPEED 0.05
 #define INFLATION_SPEED 0.6
-#define r 0.15
+#define r 0.08
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
 #define Z_LIMIT 8.0
@@ -89,10 +89,10 @@ void checkShot(GLFWwindow* window, bool leftClick) {
 
     glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
 
-    glm::vec4 rayEye = glm::inverse(projection) * rayClip;
+    glm::vec4 rayEye = projectionInverse * rayClip;
     rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 
-    glm::vec3 rayWorld = glm::vec3(glm::inverse(view) * rayEye);
+    glm::vec3 rayWorld = glm::vec3(viewInverse * rayEye);
     rayWorld = glm::normalize(rayWorld);
 
     for (auto it = balls.begin(); it != balls.end(); ++it) {
@@ -180,8 +180,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //shaders
     glUseProgram(shader);
     unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
-    unsigned int inflationLoc = glGetUniformLocation(shader, "uInflation");
-
     unsigned int modelLoc = glGetUniformLocation(shader, "uM");
     unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
 
@@ -190,7 +188,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     float aspectRatio = (float)wWidth / wHeight;
 
     //3D matrices
-    glm::mat4 model = glm::mat4(1.0f); //Matrica transformacija - mat4(1.0f) generise jedinicnu matricu
+    glm::mat4 model = glm::mat4(1.0f);
 
     float yaw = 15;
     float pitch = -90;
@@ -201,7 +199,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     ) + glm::vec3(0, -1, 0);
 
     view = glm::lookAt(cameraAt, direction, glm::vec3(0.0f, 1.0f, 0.0f));
-     //Matrica pogleda (kamere): lookAt(Gde je kamera, u sta kamera gleda, jedinicni vektor pozitivne Y ose sveta  - ovo rotira kameru)
     viewInverse = glm::inverse(view);
 
     projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
@@ -337,12 +334,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
                 if (ball.red) glUniform3f(uColLoc, 0.7, 0.05, 0.1);
                 else glUniform3f(uColLoc, 0.05, 0., 0.7);
             }
-
-            //TODO scale
-            glUniform1f(inflationLoc, ball.inflation);
             
             model = glm::mat4(1.0f);
             model = glm::translate(model, ball.pos);
+            model = glm::scale(model, glm::vec3(ball.inflation, ball.inflation, ball.inflation));
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
             modelBall.Draw(shader);

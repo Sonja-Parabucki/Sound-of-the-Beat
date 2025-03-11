@@ -11,9 +11,6 @@ uniform mat4 uPV; //projection * view matrix
 
 void main()
 {
-	gl_Position = uPV * uM * vec4((inPos.x * uInflation),
-								(inPos.y * uInflation),
-								inPos.z * uInflation,
-								1.0); 
+	gl_Position = uPV * uM * vec4(inPos, 1.0); 
 	chCol = inCol;
 }
