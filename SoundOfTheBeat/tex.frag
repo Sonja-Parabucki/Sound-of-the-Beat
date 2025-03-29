@@ -7,5 +7,5 @@ uniform sampler2D uTex;
 
 void main()
 {
-	outCol = texture(uTex, chTex) * 0.4;
+	outCol = texture(uTex, chTex) * 0.8;
 }

@@ -118,6 +118,7 @@ int main()
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
+    unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
     startEngine();
@@ -155,7 +156,7 @@ int main()
         //start new game
         gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, gameState, beats, song, (songPath + ".png").c_str()) == 1) {
+            if (game(window, ballShader, rayShader, texShader, lightShader, gameState, beats, song, (songPath + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))
                     break; //back to menu
             }

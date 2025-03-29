@@ -14,7 +14,7 @@ bool pause(GLFWwindow* window, int score) {
     std::string scoreTx = "SCORE: " + std::to_string(score);
 
     //render loop
-    glClearColor(0.1, 0.0, 0.0, 1.0);
+    glClearColor(0.05, 0.0, 0.0, 1.0);
 
     double renderStart, renderTime;
     bool backToMenu = false;
