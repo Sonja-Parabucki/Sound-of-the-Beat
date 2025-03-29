@@ -20,8 +20,6 @@ int streak;
 int combo = 1;
 int wWidth, wHeight;
 int mode;
-int deathRayDuration = 0;   //in frames
-float deathRayX;
 
 glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
 
@@ -65,8 +63,6 @@ void updateBalls() {
         
         if (it->pos[2] >= Z_LIMIT * 0.95 && !it->hit) {   // => miss
             it->hit = true;
-            //deathRayX = it->pos[0];
-            //deathRayDuration = DEATH_RAY_FRAMES;
             score -= 5;
             combo = 1;
             streak = 0;
@@ -167,26 +163,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    /*
-    float vertices[4 * 3];
-    //concentrated ray (alpha)
-    vertices[0] = -1.0;     // x1
-    vertices[1] = DEATH_RAY_Y; // y1
-    vertices[2] = 1.0;  // z1
-    vertices[3] = 1.0;  // x2
-    vertices[4] = DEATH_RAY_Y; // y2
-    vertices[5] = 1.0; // z2
-    //ray effect (beta)
-    vertices[6] = -1.0;     // x1
-    vertices[7] = DEATH_RAY_Y; // y1
-    vertices[8] = 1.0;  // z1
-    vertices[9] = 1.0;  // x2
-    vertices[10] = DEATH_RAY_Y; // y2
-    vertices[11] = 1.0; // z2
-    
-    unsigned int VAO, VBO;
-    initVABO(vertices, sizeof(vertices), 3 * sizeof(float), &VAO, &VBO, true);
-    */
 
     Model modelBall("resources/model/ball.obj");
 
@@ -200,6 +176,23 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     };
     unsigned int VAOtex, VBOtex;
     initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
+
+    //background logo
+    float background[] =
+    {   //left side
+        -LIMIT, -LIMIT, 0.0,     0.0, 0.0,
+        -LIMIT,  LIMIT, 0.0,     0.0, 1.0,
+        -LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
+        -LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
+        //right side
+         LIMIT, -LIMIT, 0.0,     0.0, 0.0,
+         LIMIT,  LIMIT, 0.0,     0.0, 1.0,
+         LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
+         LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
+
+    };
+    unsigned int VAObg, VBObg;
+    initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
 
     Model modelTube("resources/model/tube.obj");
 
@@ -239,8 +232,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     glUseProgram(0);
 
-    //unsigned int uAlphaLoc = glGetUniformLocation(rayShader, "uAlpha");
-
     //shader light
     glUseProgram(lightShader);
     glm::mat4 modelLight = glm::mat4(1.0f);
@@ -252,18 +243,17 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     //texture
     unsigned int logoTexture = loadImageToTexture(texturePath);
-    if (logoTexture != 0) {
-        glUseProgram(texShader);
-        unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
-        glUniform1i(uTexLoc, 0);
+    unsigned int backgroundTexture = loadImageToTexture("resources/img/stars.jpg");
+    glUseProgram(texShader);
+    unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
+    glUniform1i(uTexLoc, 0);
 
-        unsigned int modelTexLoc = glGetUniformLocation(texShader, "uM");
-        unsigned int projectionViewTexLoc = glGetUniformLocation(texShader, "uPV");
-        glUniformMatrix4fv(modelTexLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(projectionViewTexLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+    unsigned int modelTexLoc = glGetUniformLocation(texShader, "uM");
+    unsigned int projectionViewTexLoc = glGetUniformLocation(texShader, "uPV");
+    glUniformMatrix4fv(modelTexLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(projectionViewTexLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
 
-        glUseProgram(0);
-    }
+    glUseProgram(0);
     
 
     //options
@@ -335,7 +325,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //background
+        //logo
         if (logoTexture != 0) {
             glUseProgram(texShader);
             glBindVertexArray(VAOtex);
@@ -349,16 +339,20 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glUseProgram(0);
         }
         
+        //background
+        if (backgroundTexture != 0) {
+            glUseProgram(texShader);
+            glBindVertexArray(VAObg);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, backgroundTexture);
 
-        //generate new balls
-        double t = glfwGetTime();
-        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 2.6)) {
-            generateBall(lastBeat);
-            lastBeat++;
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
         }
-
-        //draw balls
-        updateBalls();
 
         //draw light tubes
         glUseProgram(lightShader);
@@ -377,8 +371,15 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
         glUseProgram(0);
 
-        //glBindVertexArray(VAO);
-        //glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        //generate new balls
+        double t = glfwGetTime();
+        if ((beatTimes.size() > lastBeat) && (beatTimes.at(lastBeat) - t < 2.6)) {
+            generateBall(lastBeat);
+            lastBeat++;
+        }
+
+        //draw balls
+        updateBalls();
 
         glUseProgram(shader);
         for (const auto& ball : balls) {
@@ -397,30 +398,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
         glUseProgram(0);
 
-        //death ray definition and rendering
-        /*
-        if (deathRayDuration > 0) {
-            glUseProgram(rayShader);
-            deathRayDuration--;
-            
-            vertices[4] = deathRayX;
-            vertices[9] = deathRayX;
-            glBufferSubData(GL_ARRAY_BUFFER, 0, 8 * sizeof(float), &vertices[0]);
-
-            glLineWidth(4.0);
-            glUniform1f(uAlphaLoc, 1.0);
-            glDrawArrays(GL_LINES, 0, 2);
-            
-            glLineWidth(10.0);
-            glUniform1f(uAlphaLoc, 0.2);
-            glDrawArrays(GL_LINES, 2, 2);
-            
-            glUseProgram(0);
-        }
-        */
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
         scoreTx = "SCORE: " + std::to_string(score);
         renderText(scoreTx, 20, 50, 1, 1.0, 1.0, 1.0);
 
@@ -437,12 +414,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
     }
 
-    //glDeleteBuffers(1, &VBO);
-    //glDeleteVertexArrays(1, &VAO);
-
     glDeleteTextures(1, &logoTexture);
     glDeleteBuffers(1, &VBOtex);
     glDeleteVertexArrays(1, &VAOtex);
+
+    glDeleteTextures(1, &backgroundTexture);
+    glDeleteBuffers(1, &VBObg);
+    glDeleteVertexArrays(1, &VAObg);
 
     return next;
 }
