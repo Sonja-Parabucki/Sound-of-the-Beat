@@ -24,7 +24,7 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
     }
 
     //render petlja
-    glClearColor(0.0, 0.0, 0.1, 1.0);
+    glClearColor(0., 0., 0.05, 1.0);
 
     int next = -1;
     int mode = 1;

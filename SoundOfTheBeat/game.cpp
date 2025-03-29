@@ -2,12 +2,12 @@
 #include <random>
 
 
-#define SPEED 0.05
+#define SPEED 0.1
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
-#define Z_LIMIT 8.0
+#define Z_LIMIT 32.0
 #define DEATH_RAY_Y -LIMIT + 0.05
 #define DEATH_RAY_FRAMES 6
 
@@ -23,9 +23,9 @@ int mode;
 int deathRayDuration = 0;   //in frames
 float deathRayX;
 
-glm::vec3 lightPosition = glm::vec3(0.0f, 0.2f, Z_LIMIT+2);
+glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
 
-glm::vec3 cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
+glm::vec3 cameraAt = glm::vec3(0.0f, 0.5f, Z_LIMIT);
 glm::mat4 projectionView;
 glm::mat4 view;
 glm::mat4 viewInverse;
@@ -140,6 +140,29 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
+void setColor(unsigned int shader, char color) {
+    switch (color) {
+        case 'r': {
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.45f, 0.f, 0.f);
+            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.6f, 0.6f);
+            break;
+        }
+        case 'b': {
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.1f, 0.06f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.05f, 0.f, 0.45f);
+            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.5f, 0.5f, 0.5f);
+            break;
+        }
+        default: {
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.2f, 0.2f, 0.2f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.65f, 0.65f, 0.65f);
+            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.7f, 0.7f);
+        }
+    }
+}
+
+
 int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -178,57 +201,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int VAOtex, VBOtex;
     initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
 
-    //light source
-    float light[] =
-    {
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
-
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f
-    };
-    unsigned int VAOlight, VBOlight;
-    initVABO(light, sizeof(light), 3 * sizeof(float), &VAOlight, &VBOlight, true);
+    Model modelTube("resources/model/tube.obj");
 
     //shaders
     glUseProgram(shader);
-    unsigned int uColLoc = glGetUniformLocation(shader, "uCol");
+    setColor(shader, 'w');
+    glUniform1f(glGetUniformLocation(shader, "material.shininess"), 32.0f);
     unsigned int uLightColLoc = glGetUniformLocation(shader, "uLightCol");
     glUniform3f(uLightColLoc, 1.0f, 1.0f, 1.0f);
     
@@ -248,18 +226,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //3D matrices
     glm::mat4 model = glm::mat4(1.0f);
 
-    float yaw = 15;
-    float pitch = -90;
-    glm::vec3 direction = glm::vec3(
-        cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-        sin(glm::radians(pitch)),
-        sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-    ) + glm::vec3(0, -1, 0);
-
-    view = glm::lookAt(cameraAt, direction, glm::vec3(0.0f, 1.0f, 0.0f));
+    view = glm::lookAt(cameraAt, glm::vec3(0.0f, -3.f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     viewInverse = glm::inverse(view);
 
-    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
+    projection = glm::perspective(glm::radians(15.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
     projectionInverse = glm::inverse(projection);
 
     projectionView = projection * view;
@@ -274,12 +244,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //shader light
     glUseProgram(lightShader);
     glm::mat4 modelLight = glm::mat4(1.0f);
-    modelLight = glm::translate(modelLight, lightPosition);
-    modelLight = glm::scale(modelLight, glm::vec3(0.2f));
-
     unsigned int modelLightLoc = glGetUniformLocation(lightShader, "uM");
+
     unsigned int projectionViewLightLoc = glGetUniformLocation(lightShader, "uPV");
-    glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
     glUniformMatrix4fv(projectionViewLightLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
 
@@ -319,7 +286,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     beatTimes = beats;
 
     //render loop
-    glClearColor(0., 0., 0.1, 1.0);
+    glClearColor(0., 0., 0.05, 1.0);
 
     int i = 0;
     bool endGame = false;
@@ -393,30 +360,37 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         //draw balls
         updateBalls();
 
-        //light source
-        glBindVertexArray(VAOlight);
-        glBindBuffer(GL_ARRAY_BUFFER, VBOlight);
+        //draw light tubes
         glUseProgram(lightShader);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        float lightPosX = LIMIT;
+        float lightPosY = LIMIT;
+        for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
+            for (int j = 0; j < 2; j++, lightPosY = -lightPosY) {
+                lightPosition = glm::vec3(lightPosX, lightPosY, 0.0f);
+                modelLight = glm::mat4(1.0f);
+                modelLight = glm::translate(modelLight, lightPosition);
+                modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
+                modelTube.Draw(lightShader);
+            }
+        }
         glUseProgram(0);
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         //glBindVertexArray(VAO);
         //glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         glUseProgram(shader);
-        glUniform3f(uColLoc, 1.0, 1.0, 1.0);
         for (const auto& ball : balls) {
 
             if (mode == 1) {
-                if (ball.red) glUniform3f(uColLoc, 0.7, 0.05, 0.1);
-                else glUniform3f(uColLoc, 0.05, 0., 0.7);
+                if (ball.red) setColor(shader, 'r');
+                else setColor(shader, 'b');
             }
             
             model = glm::mat4(1.0f);
             model = glm::translate(model, ball.pos);
-            model = glm::scale(model, glm::vec3(ball.inflation, ball.inflation, ball.inflation));
+            model = glm::scale(model, glm::vec3(ball.inflation));
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
             modelBall.Draw(shader);

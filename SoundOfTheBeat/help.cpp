@@ -20,7 +20,7 @@ void showHelp(GLFWwindow* window) {
     std::string exitTx = "[ESC] back to MENU";
 
     //render loop
-    glClearColor(0.0, 0.1, 0.0, 1.0);
+    glClearColor(0.0, 0.05, 0.0, 1.0);
 
     double renderStart, renderTime;
     while (true) {
