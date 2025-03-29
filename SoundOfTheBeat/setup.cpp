@@ -90,6 +90,11 @@ unsigned int loadImageToTexture(const char* filePath) {
     stbi_set_flip_vertically_on_load(1);
 
     unsigned char* ImageData = stbi_load(filePath, &TextureWidth, &TextureHeight, &TextureChannels, 0);
+    if (ImageData == NULL) {
+        std::string defaultPath = "resources/img/stars.jpg";
+        ImageData = stbi_load(defaultPath.c_str(), &TextureWidth, &TextureHeight, &TextureChannels, 0);
+    }
+
     if (ImageData != NULL)
     {
         GLint InternalFormat = -1;
