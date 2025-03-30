@@ -46,12 +46,20 @@ struct Ball {
     bool red;
 };
 
+struct Bomb {
+    glm::vec3 pos;
+};
+
 struct GameState {
     int score;
     int streak;
     int mode;
     double time;
     std::vector<Ball> balls;
+    std::vector<Bomb> bombs;
+    std::vector<double> beatTimes;
     int lastBeat;
+    std::vector<double> bombTimes;
+    int lastBomb;
 };
 

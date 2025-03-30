@@ -11,9 +11,9 @@ int startEngine() {
 
     if (!engine)
         return 1; // error starting up the engine
-    effect = engine->addSoundSourceFromFile("resources/cursor/effect.wav");
-    miss = engine->addSoundSourceFromFile("resources/cursor/miss.wav");
-    ray = engine->addSoundSourceFromFile("resources/cursor/ray.wav");
+    effect = engine->addSoundSourceFromFile("resources/sounds/effect.wav");
+    miss = engine->addSoundSourceFromFile("resources/sounds/miss.wav");
+    ray = engine->addSoundSourceFromFile("resources/sounds/ray.wav");
     ray->setDefaultVolume(0.1);
 }
 

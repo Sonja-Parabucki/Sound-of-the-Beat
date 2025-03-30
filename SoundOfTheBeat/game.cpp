@@ -3,6 +3,7 @@
 
 
 #define SPEED 0.1
+#define BOMB_SPEED SPEED + 0.05
 #define INFLATION_SPEED 0.6
 #define r 0.08
 #define LIMIT 0.75
@@ -14,7 +15,10 @@
 
 std::vector<double> beatTimes;
 int lastBeat;
+std::vector<double> bombTimes;
+int lastBomb;
 std::vector<Ball> balls;
+std::vector<Bomb> bombs;
 int score;
 int streak;
 int combo = 1;
@@ -57,6 +61,11 @@ void generateBall(int beatInd) {
     balls.push_back(ball);
 }
 
+void generateBomb() {
+    Bomb bomb{ glm::vec3(random(), random(), 0.f) };
+    bombs.push_back(bomb);
+}
+
 void updateBalls() {
     for (auto it = balls.begin(); it != balls.end();) {
         it->pos[2] += SPEED;
@@ -76,6 +85,16 @@ void updateBalls() {
             it = balls.erase(it);
         else
             ++it;
+    }
+}
+
+void updateBombs() {
+    for (auto it = bombs.begin(); it != bombs.end();) {
+        it->pos[2] += BOMB_SPEED;
+        if (it->pos[2] > Z_LIMIT)   //fell off from the screen
+            it = bombs.erase(it);
+        else
+            ++it; 
     }
 }
 
@@ -150,6 +169,12 @@ void setColor(unsigned int shader, char color) {
             glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.5f, 0.5f, 0.5f);
             break;
         }
+        case 'g': {
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.22f, 0.25f, 0.25f);
+            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.33f, 0.33f, 0.35f);
+            break;
+        }
         default: {
             glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.2f, 0.2f, 0.2f);
             glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.65f, 0.65f, 0.65f);
@@ -159,12 +184,12 @@ void setColor(unsigned int shader, char color) {
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState& gameState,  std::vector<double> beats, irrklang::ISound* song, const char* texturePath) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState& gameState, irrklang::ISound* song, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-
     Model modelBall("resources/model/ball.obj");
+    Model modelBomb("resources/model/grenade.obj");
 
     //background logo
     float logo[] =
@@ -268,12 +293,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     score = gameState.score;
     streak = gameState.streak;
     setCombo();
+
     balls = gameState.balls;
+    bombs = gameState.bombs;
     glfwSetTime(gameState.time);
+
+    beatTimes = gameState.beatTimes;
     lastBeat = gameState.lastBeat;
+
+    bombTimes = gameState.bombTimes;
+    lastBomb = gameState.lastBomb;
     int next = 0;
 
-    beatTimes = beats;
 
     //render loop
     glClearColor(0., 0., 0.05, 1.0);
@@ -306,8 +337,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             gameState.score = score;
             gameState.streak = streak;
             gameState.balls = balls;
+            gameState.bombs = bombs;
             gameState.time = glfwGetTime();
             gameState.lastBeat = lastBeat;
+            gameState.lastBomb = lastBomb;
             next = 1;
             endGame = true;
             break;
@@ -395,6 +428,26 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
             modelBall.Draw(shader);
+        }
+        glUseProgram(0);
+
+        //generate bomb
+        if ((lastBomb < bombTimes.size()) && (bombTimes.at(lastBomb) - t < 2.0)) {
+            generateBomb();
+            lastBomb++;
+        }
+
+        //draw bombs
+        updateBombs();
+
+        glUseProgram(shader);
+        setColor(shader, 'g');
+        for (const auto& bomb : bombs) {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, bomb.pos);
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+            modelBomb.Draw(shader);
         }
         glUseProgram(0);
 
