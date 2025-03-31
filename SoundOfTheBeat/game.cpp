@@ -250,21 +250,17 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     Model modelBall("resources/model/ball.obj");
     Model modelBomb("resources/model/grenade.obj");
+    Model modelTube("resources/model/tube.obj");
 
     //background logo
-    float logo[] =
+    float background[] =
     {   // X       Y    Z     S    T 
+        //logo
         -LIMIT, -LIMIT, 0,  0.0, 0.0,
         -LIMIT,  LIMIT, 0,  0.0, 1.0,
          LIMIT, -LIMIT, 0,  1.0, 0.0,
          LIMIT,  LIMIT, 0,  1.0, 1.0,
-    };
-    unsigned int VAOtex, VBOtex;
-    initVABO(logo, sizeof(logo), 5 * sizeof(float), &VAOtex, &VBOtex, true);
-
-    //background logo
-    float background[] =
-    {   //left side
+        //left side
         -LIMIT, -LIMIT, 0.0,     0.0, 0.0,
         -LIMIT,  LIMIT, 0.0,     0.0, 1.0,
         -LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
@@ -279,7 +275,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     unsigned int VAObg, VBObg;
     initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
 
-    Model modelTube("resources/model/tube.obj");
 
     //shaders
     glUseProgram(shader);
@@ -367,7 +362,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         renderStart = glfwGetTime();
 
         //return to meni
-        if ((state->balls.empty() && state->lastBeat == state->beatTimes.size())
+        if ((state->balls.empty() && state->lastBeat >= state->beatTimes.size()/2)
             || (gameOver && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)) {
             next = 0;
             endGame = true;
@@ -393,32 +388,20 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glDisable(GL_DEPTH_TEST);
         }
 
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        //logo
-        if (logoTexture != 0) {
-            glUseProgram(texShader);
-            glBindVertexArray(VAOtex);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, logoTexture);
-
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindVertexArray(0);
-            glUseProgram(0);
-        }
         
         //background
-        if (backgroundTexture != 0) {
+        if (logoTexture != 0 && backgroundTexture != 0) {
             glUseProgram(texShader);
             glBindVertexArray(VAObg);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, backgroundTexture);
 
+            glBindTexture(GL_TEXTURE_2D, logoTexture);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            
+            glBindTexture(GL_TEXTURE_2D, backgroundTexture);
             glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
 
             glBindTexture(GL_TEXTURE_2D, 0);
             glBindVertexArray(0);
@@ -470,9 +453,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     }
 
     glDeleteTextures(1, &logoTexture);
-    glDeleteBuffers(1, &VBOtex);
-    glDeleteVertexArrays(1, &VAOtex);
-
     glDeleteTextures(1, &backgroundTexture);
     glDeleteBuffers(1, &VBObg);
     glDeleteVertexArrays(1, &VAObg);
