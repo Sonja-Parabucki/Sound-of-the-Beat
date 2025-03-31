@@ -98,7 +98,12 @@ void updateBombs() {
     }
 }
 
-void checkShot(GLFWwindow* window, bool leftClick) {
+void bombsAway(glm::vec3 pos) {
+    playGameOver();
+    //todo
+}
+
+glm::vec3 clickToWorldCoord(GLFWwindow* window) {
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
@@ -111,7 +116,30 @@ void checkShot(GLFWwindow* window, bool leftClick) {
 
     glm::vec3 rayWorld = glm::vec3(viewInverse * rayEye);
     rayWorld = glm::normalize(rayWorld);
+    return rayWorld;
+}
 
+
+bool isTouching(glm::vec3 objPos, glm::vec3 rayWorld) {
+    glm::vec3 oc = cameraAt - objPos;
+    float a = glm::dot(rayWorld, rayWorld);
+    float b = 2.0f * glm::dot(oc, rayWorld);
+    float c = glm::dot(oc, oc) - r * r;
+    float discriminant = b * b - 4 * a * c;
+    return discriminant >= 0;
+}
+
+bool checkBombs(glm::vec3 rayWorld) {
+    for (Bomb& bomb : bombs) {
+        if (isTouching(bomb.pos, rayWorld)) {
+            bombsAway(bomb.pos);
+            return true;
+        }
+    }
+    return false;
+}
+
+void checkShot(glm::vec3 rayWorld, bool leftClick) {
     for (auto it = balls.begin(); it != balls.end(); ++it) {
         if (it->hit)
             continue;
@@ -119,13 +147,7 @@ void checkShot(GLFWwindow* window, bool leftClick) {
         if (mode == 1 && it->red != leftClick)
             continue;
 
-        glm::vec3 oc = cameraAt - it->pos;
-        float a = glm::dot(rayWorld, rayWorld);
-        float b = 2.0f * glm::dot(oc, rayWorld);
-        float c = glm::dot(oc, oc) - r * r;
-        float discriminant = b * b - 4 * a * c;
-
-        if (discriminant >= 0) {
+        if (isTouching(it->pos, rayWorld)) {
             double t = glfwGetTime();
             if (abs(t - it->timeToHit) < 0.5) {
                 streak += 1;
@@ -147,11 +169,12 @@ void checkShot(GLFWwindow* window, bool leftClick) {
 }
 
 
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS)
-            checkShot(window, button == GLFW_MOUSE_BUTTON_LEFT);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
+        auto ray = clickToWorldCoord(window);
+        if (checkBombs(ray)) return;
+        checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT);
+    }
 }
 
 
