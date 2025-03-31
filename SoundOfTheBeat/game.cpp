@@ -15,6 +15,7 @@ GameState* state;
 int combo = 1;
 int wWidth, wHeight;
 
+bool won;
 bool gameOver;
 glm::vec3 explosionPos;
 
@@ -27,6 +28,7 @@ glm::mat4 viewInverse;
 glm::mat4 projection;
 glm::mat4 projectionInverse;
 glm::mat4 model;
+std::string messageTx;
 
 
 float random() {
@@ -42,6 +44,25 @@ void setCombo() {
     if (state->streak >= 8) combo = 8;
     else if (state->streak >= 4) combo = 4;
     else if (state->streak >= 2) combo = 2;
+}
+
+void checkWin() {
+    if (state->lastBeat == state->beatTimes.size() && !gameOver) {
+        for (const Ball& ball : state->balls)
+            if (!ball.hit) return;
+        if (!won) {
+            playWin();
+            messageTx = "CONGRATULATIONS";
+        }
+        won = true;
+    }
+}
+
+void setGameOver() {
+    pauseSong(state->song);
+    gameOver = true;
+    messageTx = "GAME OVER";
+    playGameOver();
 }
 
 void generateBall(int beatInd) {
@@ -70,16 +91,20 @@ void updateBalls() {
             combo = 1;
             state->streak = 0;
             playRay();
+
+            if (state->score <= 0)
+                setGameOver();
         }
 
         if (it->hit)
             it->inflation *= INFLATION_SPEED;
 
-        if (it->pos[2] > Z_LIMIT)   //fell off from the screen
+        if (it->pos[2] > Z_LIMIT || it->inflation < 0.01)   //not visible
             it = state->balls.erase(it);
         else
             ++it;
     }
+    checkWin();
 }
 
 void updateBombs() {
@@ -92,9 +117,6 @@ void updateBombs() {
     }
 }
 
-void onGameOver() {
-    
-}
 
 glm::vec3 clickToWorldCoord(GLFWwindow* window) {
     double mouseX, mouseY;
@@ -123,12 +145,10 @@ bool isTouching(glm::vec3 objPos, glm::vec3 rayWorld) {
 }
 
 bool checkBombs(glm::vec3 rayWorld) {
-    for (Bomb& bomb : state->bombs) {
+    for (const Bomb& bomb : state->bombs) {
         if (isTouching(bomb.pos, rayWorld)) {
-            pauseSong(state->song);
             explosionPos = bomb.pos;
-            gameOver = true;
-            playGameOver();
+            setGameOver();
             return true;
         }
     }
@@ -159,6 +179,7 @@ void checkShot(glm::vec3 rayWorld, bool leftClick) {
             }
 
             it->hit = true;
+            checkWin();
             return;
         }
     }
@@ -244,6 +265,11 @@ void drawBombs(unsigned int shader, Model& object) {
     glUseProgram(0);
 }
 
+
+void onExplosion() {
+    //todo
+}
+
 int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -274,7 +300,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     };
     unsigned int VAObg, VBObg;
     initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
-
 
     //shaders
     glUseProgram(shader);
@@ -349,32 +374,32 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     setCombo();
     int next = 0;
     bool endGame = false;
+    won = false;
     gameOver = false;
+    explosionPos = glm::vec3(-1.0);
     std::string scoreTx;
+    float scoreScaling = 1.0f;
     std::string comboTx;
+    std::string continueTx = "press [SPACE]";
 
     glClearColor(0., 0., 0.05, 1.0);
     resumeSong(state->song);
 
     //render loop
     double renderStart, renderTime;
-    while (state->score > 0 && !endGame) {
+    while (!endGame) {
         renderStart = glfwGetTime();
 
-        //return to meni
-        if ((state->balls.empty() && state->lastBeat >= state->beatTimes.size()/2)
-            || (gameOver && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)) {
-            next = 0;
-            endGame = true;
-            break;
-        }
-
-        //pause game
-        if (!gameOver && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
-            pauseSong(state->song);
-            gameState->time = glfwGetTime();
-            next = 1;
+            if (won || gameOver) {
+                next = 0;   //return to meni
+            }
+            else {
+                pauseSong(state->song);
+                gameState->time = glfwGetTime();
+                next = 1;   //pause game
+            }
             endGame = true;
             break;
         }
@@ -425,10 +450,18 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         }
         glUseProgram(0);
 
-        if (gameOver) {
-            //todo
+        if (won || gameOver) {
+            renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
+            renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
+            scoreScaling = 1.5f;
         }
-        else {
+
+        if (explosionPos[0] > 0) {
+            //todo
+            onExplosion();
+        }
+
+        if (!gameOver) {
             generateNewObjects();
             updateBalls();
             updateBombs();
@@ -437,7 +470,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
         drawBombs(shader, modelBomb);
 
         scoreTx = "SCORE: " + std::to_string(state->score);
-        renderText(scoreTx, 20, 50, 1, 1.0, 1.0, 1.0);
+        renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
 
         comboTx = 'x' + std::to_string(combo);
         renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
