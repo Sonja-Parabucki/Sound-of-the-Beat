@@ -1,4 +1,4 @@
-(I Can't Get No) Satisfaction=10
+(I Can't Get No) Satisfaction=12
 Another One Bites the Dust=0
 Billie Jean=0
 Chippin' In=0
@@ -8,7 +8,7 @@ Doom And Gloom=10
 Enemy=0
 Eye Of The Tiger=0
 I Need a Hero=0
-Never Gonna Give You Up=0
+Never Gonna Give You Up=20
 TNT=0
-Wake Me Up Before You Go Go=0
-manamanam=0
+Wake Me Up Before You Go Go=10
+manamanam=16

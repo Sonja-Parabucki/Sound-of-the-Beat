@@ -51,6 +51,7 @@ struct Bomb {
 };
 
 struct GameState {
+    irrklang::ISound* song;
     int score;
     int streak;
     int mode;

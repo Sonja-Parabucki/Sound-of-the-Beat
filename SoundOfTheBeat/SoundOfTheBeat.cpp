@@ -157,9 +157,9 @@ int main()
         song = playSong((SONG_FOLDER + gameInstance.selectedSongName + ".wav").c_str(), false, true);
 
         //start new game
-        gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
+        gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, lightShader, gameState, song, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
+            if (game(window, ballShader, rayShader, texShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))
                     break; //back to menu
             }
