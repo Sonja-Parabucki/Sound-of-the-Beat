@@ -462,6 +462,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
                 glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
                 modelTube.Draw(lightShader);
             }
+            modelLight = glm::mat4(1.0f);
+            modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
+            modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
+            modelTube.Draw(lightShader);
         }
         glUseProgram(0);
 
