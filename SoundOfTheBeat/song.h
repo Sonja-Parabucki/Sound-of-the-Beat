@@ -12,6 +12,7 @@ void playMiss();
 void playRay();
 void playGameOver();
 void playWin();
+void playExplosion();
 void resumeSong(irrklang::ISound* sound);
 void pauseSong(irrklang::ISound* sound);
 void stopSongs();

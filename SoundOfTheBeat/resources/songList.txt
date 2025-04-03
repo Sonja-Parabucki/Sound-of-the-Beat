@@ -1,7 +1,7 @@
 (I Can't Get No) Satisfaction=14
-Another One Bites the Dust=0
-Billie Jean=0
-Chippin' In=0
+Another One Bites the Dust=10
+Billie Jean=6
+Chippin' In=12
 Dirty Deeds Done Dirt Cheap=0
 Don't Stop Me Now=0
 Doom And Gloom=10

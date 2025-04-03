@@ -7,6 +7,7 @@ irrklang::ISoundSource* miss;
 irrklang::ISoundSource* ray;
 irrklang::ISoundSource* gameOver;
 irrklang::ISoundSource* win;
+irrklang::ISoundSource* explosion;
 
 int startEngine() {
      engine = irrklang::createIrrKlangDevice();
@@ -19,6 +20,7 @@ int startEngine() {
     ray->setDefaultVolume(0.1);
     gameOver = engine->addSoundSourceFromFile("resources/sounds/game-over.wav");
     win = engine->addSoundSourceFromFile("resources/sounds/success.wav");
+    explosion = engine->addSoundSourceFromFile("resources/sounds/explosion.wav");
 }
 
 irrklang::ISound* playSong(const char* filename, bool loop, bool paused)
@@ -44,6 +46,10 @@ void playGameOver() {
 
 void playWin() {
     engine->play2D(win);
+}
+
+void playExplosion() {
+    engine->play2D(explosion);
 }
 
 void resumeSong(irrklang::ISound* sound) {

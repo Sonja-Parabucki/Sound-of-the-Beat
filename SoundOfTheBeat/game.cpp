@@ -4,12 +4,11 @@
 #define SPEED 0.1
 #define BOMB_SPEED SPEED + 0.05
 #define INFLATION_SPEED 0.6
+#define EXPLOSION_SPEED 0.05
 #define r 0.08
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
 #define Z_LIMIT 32.0
-#define DEATH_RAY_Y -LIMIT + 0.05
-#define DEATH_RAY_FRAMES 6
 
 GameState* state;
 int combo = 1;
@@ -18,6 +17,7 @@ int wWidth, wHeight;
 bool won;
 bool gameOver;
 glm::vec3 explosionPos;
+float explosionInflation;
 
 glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
 
@@ -58,11 +58,14 @@ void checkWin() {
     }
 }
 
-void setGameOver() {
+void setGameOver(bool isExplosion = false) {
     pauseSong(state->song);
     gameOver = true;
     messageTx = "GAME OVER";
-    playGameOver();
+    if (isExplosion)
+        playExplosion();
+    else
+        playGameOver();
 }
 
 void generateBall(int beatInd) {
@@ -148,7 +151,13 @@ bool checkBombs(glm::vec3 rayWorld) {
     for (const Bomb& bomb : state->bombs) {
         if (isTouching(bomb.pos, rayWorld)) {
             explosionPos = bomb.pos;
-            setGameOver();
+            explosionInflation = 0.01;
+            setGameOver(true);
+
+            for (Ball& ball : state->balls) {
+                ball.hit = true;
+            }
+            state->bombs.clear();
             return true;
         }
     }
@@ -266,9 +275,6 @@ void drawBombs(unsigned int shader, Model& object) {
 }
 
 
-void onExplosion() {
-    //todo
-}
 
 int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
@@ -278,7 +284,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     Model modelBomb("resources/model/grenade.obj");
     Model modelTube("resources/model/tube.obj");
 
-    //background logo
     float background[] =
     {   // X       Y    Z     S    T 
         //logo
@@ -300,6 +305,16 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     };
     unsigned int VAObg, VBObg;
     initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
+
+    float explosion[] =
+    {
+        -GEN_LIMIT, -GEN_LIMIT, 1.0,  0.0, 0.0,
+        -GEN_LIMIT,  GEN_LIMIT, 1.0,  0.0, 1.0,
+         GEN_LIMIT, -GEN_LIMIT, 1.0,  1.0, 0.0,
+         GEN_LIMIT,  GEN_LIMIT, 1.0,  1.0, 1.0,
+    };
+    unsigned int VAOexplosion, VBOexplosion;
+    initVABO(explosion, sizeof(explosion), 5 * sizeof(float), &VAOexplosion, &VBOexplosion, true);
 
     //shaders
     glUseProgram(shader);
@@ -349,15 +364,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     //texture
     unsigned int logoTexture = loadImageToTexture(texturePath);
     unsigned int backgroundTexture = loadImageToTexture("resources/img/stars.jpg");
+    unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
+
     glUseProgram(texShader);
-    unsigned uTexLoc = glGetUniformLocation(texShader, "uTex");
-    glUniform1i(uTexLoc, 0);
-
-    unsigned int modelTexLoc = glGetUniformLocation(texShader, "uM");
-    unsigned int projectionViewTexLoc = glGetUniformLocation(texShader, "uPV");
-    glUniformMatrix4fv(modelTexLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(projectionViewTexLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
-
+    glUniform1i(glGetUniformLocation(texShader, "uTex"), 0);
+    glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
     
 
@@ -421,6 +433,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             glBindVertexArray(VAObg);
             glActiveTexture(GL_TEXTURE0);
 
+            model = glm::mat4(1.0f);
+            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+
             glBindTexture(GL_TEXTURE_2D, logoTexture);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             
@@ -456,16 +471,34 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
             scoreScaling = 1.5f;
         }
 
-        if (explosionPos[0] > 0) {
-            //todo
-            onExplosion();
-        }
-
         if (!gameOver) {
             generateNewObjects();
+        }
+        if (state->score > 0) {
             updateBalls();
             updateBombs();
         }
+
+        if (explosionPos[0] > -1) {
+            glUseProgram(texShader);
+            glBindVertexArray(VAOexplosion);
+            glActiveTexture(GL_TEXTURE0);
+
+            if (explosionInflation < 1.0)
+                explosionInflation += EXPLOSION_SPEED;
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(explosionPos));
+            model = glm::scale(model, glm::vec3(explosionInflation));
+            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+
+            glBindTexture(GL_TEXTURE_2D, explosionTexture);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
+
         drawBalls(shader, modelBall);
         drawBombs(shader, modelBomb);
 
@@ -487,8 +520,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
     glDeleteTextures(1, &logoTexture);
     glDeleteTextures(1, &backgroundTexture);
+    glDeleteTextures(1, &explosionTexture);
     glDeleteBuffers(1, &VBObg);
     glDeleteVertexArrays(1, &VAObg);
+    glDeleteBuffers(1, &VBOexplosion);
+    glDeleteVertexArrays(1, &VAOexplosion);
 
     return next;
 }
