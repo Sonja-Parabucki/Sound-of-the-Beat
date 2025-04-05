@@ -5,10 +5,12 @@
 #define BOMB_SPEED SPEED + 0.05
 #define INFLATION_SPEED 0.6
 #define EXPLOSION_SPEED 0.05
-#define r 0.08
+#define r 0.12
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
 #define Z_LIMIT 32.0
+#define BALL_GEN_DELTA 2.5
+#define BOMB_GEN_DELTA BALL_GEN_DELTA - 0.5
 
 GameState* state;
 int combo = 1;
@@ -137,7 +139,7 @@ glm::vec3 clickToWorldCoord(GLFWwindow* window) {
     return rayWorld;
 }
 
-
+//todo check math here
 bool isTouching(glm::vec3 objPos, glm::vec3 rayWorld) {
     glm::vec3 oc = cameraAt - objPos;
     float a = glm::dot(rayWorld, rayWorld);
@@ -162,7 +164,7 @@ void checkBombs(glm::vec3 rayWorld) {
     }
 }
 
-void checkShot(glm::vec3 rayWorld, bool leftClick) {
+bool checkShot(glm::vec3 rayWorld, bool leftClick) {
     for (auto it = state->balls.begin(); it != state->balls.end(); ++it) {
         if (it->hit)
             continue;
@@ -186,16 +188,17 @@ void checkShot(glm::vec3 rayWorld, bool leftClick) {
             }
             it->hit = true;
             checkWin();
-            return;
+            return true;
         }
     }
+    return false;
 }
 
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
-        checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT);
+        if (checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT)) return;
         checkBombs(ray);
     }
 }
@@ -232,12 +235,12 @@ void setColor(unsigned int shader, char color) {
 
 void generateNewObjects() {
     double t = glfwGetTime();
-    if ((state->beatTimes.size() > state->lastBeat) && (state->beatTimes.at(state->lastBeat) - t < 4.0)) {
+    if ((state->beatTimes.size() > state->lastBeat) && (state->beatTimes.at(state->lastBeat) - t < BALL_GEN_DELTA)) {
         generateBall(state->lastBeat);
         state->lastBeat++;
     }
 
-    if ((state->lastBomb < state->bombTimes.size()) && (state->bombTimes.at(state->lastBomb) - t < 3.0)) {
+    if ((state->lastBomb < state->bombTimes.size()) && (state->bombTimes.at(state->lastBomb) - t < BOMB_GEN_DELTA)) {
         generateBomb();
         state->lastBomb++;
     }
@@ -391,7 +394,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     float scoreScaling = 1.0f;
     std::string comboTx;
     std::string continueTx = "press [SPACE]";
-    //if (gameState->time >= 4.0) resumeSong(state->song);
 
     glClearColor(0., 0., 0.05, 1.0);
     resumeSong(state->song);
@@ -400,12 +402,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     double renderStart, renderTime;
     while (!endGame) {
         renderStart = glfwGetTime();
-        
-        /*if (state->beatTimes[0] - renderStart <= 0.04) {
-            resumeSong(state->song);
-            std::cout << renderStart << "\n";
-
-        }*/
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {

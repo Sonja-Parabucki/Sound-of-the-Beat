@@ -77,7 +77,7 @@ if (__name__ == "__main__"):
             filename = file.__str__()
 
             print(f'Updating {name}...')
-            process(filename, name, 1024)
+            process(filename, name, 2048)
             songs[name] = '0'
 
     with open(res_folder + "songList.txt", "w") as f:
