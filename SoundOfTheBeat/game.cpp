@@ -139,7 +139,6 @@ glm::vec3 clickToWorldCoord(GLFWwindow* window) {
     return rayWorld;
 }
 
-//todo check math here
 bool isTouching(glm::vec3 objPos, glm::vec3 rayWorld) {
     glm::vec3 oc = cameraAt - objPos;
     float a = glm::dot(rayWorld, rayWorld);
