@@ -5,7 +5,10 @@
 #include "textUtil.h"
 #include <map>
 
-const std::string SONG_FOLDER = "resources/song/";
+const std::string SONG_FOLDER = "resources/songs/";
+const std::string IMG_FOLDER = "resources/img/";
+const std::string BEATS_FOLDER = "resources/beats/";
+const std::string BOMB_FOLDER = "resources/bombs/";
 
 GLFWcursor* createCursor() {
     int width, height, channels;
@@ -32,7 +35,7 @@ GLFWcursor* createCursor() {
 std::map<std::string, int> loadSongsInfo() {
     std::map<std::string, int> songs;
     
-    std::string path = SONG_FOLDER + "songList.txt";
+    std::string path = "resources/songList.txt";
     std::string name, line;
     int score;
     
@@ -51,8 +54,8 @@ std::map<std::string, int> loadSongsInfo() {
 }
 
 std::vector<double> loadSong(std::string songName) {
-    std::cout << "Loading beats for " << songName << std::endl;
-    std::string beat_path = SONG_FOLDER + songName + ".txt";
+    std::cout << "Loading for " << songName << std::endl;
+    std::string beat_path = songName + ".txt";
     std::vector<double> beats;
     double beat;
     std::ifstream fin_beat(beat_path);
@@ -60,7 +63,7 @@ std::vector<double> loadSong(std::string songName) {
         while ((fin_beat >> beat))
             beats.push_back(beat);
         fin_beat.close();;
-        std::cout << "Loaded beats for " << songName << std::endl;
+        std::cout << "Loaded for " << songName << std::endl;
     }
     return beats;
 }
@@ -116,7 +119,6 @@ int main()
         glfwSetCursor(window, cursor);
 
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
-    unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
     unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
@@ -132,7 +134,6 @@ int main()
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
             glDeleteProgram(ballShader);
-            glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
             deallocateLetterResources();
 
@@ -149,14 +150,14 @@ int main()
             showHelp(window);
             continue;
         }
-        std::vector<double> beats = loadSong(gameInstance.selectedSongName);
-        std::string songPath = SONG_FOLDER + gameInstance.selectedSongName;
-        song = playSong((songPath + ".wav").c_str(), false, true);
+        std::vector<double> beats = loadSong(BEATS_FOLDER + gameInstance.selectedSongName);
+        std::vector<double> bombs = loadSong(BOMB_FOLDER + gameInstance.selectedSongName);
+        song = playSong((SONG_FOLDER + gameInstance.selectedSongName + ".wav").c_str(), false, true);
 
         //start new game
-        gameState = GameState{ 10, 0, gameInstance.mode, 0, {}, 0 };
+        gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, lightShader, gameState, beats, song, (songPath + ".png").c_str()) == 1) {
+            if (game(window, ballShader, texShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))
                     break; //back to menu
             }
@@ -169,7 +170,7 @@ int main()
         if (gameState.score > songs[gameInstance.selectedSongName]) {
             songs[gameInstance.selectedSongName] = gameState.score;
 
-            std::ofstream fout(SONG_FOLDER + "songList.txt");
+            std::ofstream fout("resources/songList.txt");
             for (auto it = songs.begin(); it != songs.end(); it++)
                 fout << it->first << '=' << it->second << std::endl;
             fout.close();

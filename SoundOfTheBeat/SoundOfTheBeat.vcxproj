@@ -165,7 +165,6 @@
     <None Include="light.frag" />
     <None Include="light.vert" />
     <None Include="packages.config" />
-    <None Include="ray.frag" />
     <None Include="tex.frag" />
     <None Include="tex.vert" />
   </ItemGroup>

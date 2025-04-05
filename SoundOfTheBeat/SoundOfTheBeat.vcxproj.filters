@@ -66,9 +66,6 @@
     <None Include="ball.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="ray.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
     <None Include="tex.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
