@@ -119,7 +119,6 @@ int main()
         glfwSetCursor(window, cursor);
 
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
-    unsigned int rayShader = createShader("basic.vert", "ray.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
     unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
@@ -135,7 +134,6 @@ int main()
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
             glDeleteProgram(ballShader);
-            glDeleteProgram(rayShader);
             glDeleteProgram(texShader);
             deallocateLetterResources();
 
@@ -159,7 +157,7 @@ int main()
         //start new game
         gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
         while (true) {
-            if (game(window, ballShader, rayShader, texShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
+            if (game(window, ballShader, texShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))
                     break; //back to menu
             }

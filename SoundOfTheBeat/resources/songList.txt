@@ -1,10 +1,10 @@
-(I Can't Get No) Satisfaction=14
-Another One Bites the Dust=10
-Billie Jean=6
+(I Can't Get No) Satisfaction=464
+Another One Bites the Dust=20
+Billie Jean=1277
 Chippin' In=12
-Dirty Deeds Done Dirt Cheap=0
+Dirty Deeds Done Dirt Cheap=613
 Don't Stop Me Now=0
-Doom And Gloom=10
+Doom And Gloom=307
 Enemy=0
 Eye Of The Tiger=0
 I Need a Hero=0

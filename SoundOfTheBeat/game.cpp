@@ -1,7 +1,7 @@
 #include "game.h"
 #include <random>
 
-#define SPEED 0.1
+#define SPEED 0.2
 #define BOMB_SPEED SPEED + 0.05
 #define INFLATION_SPEED 0.6
 #define EXPLOSION_SPEED 0.05
@@ -147,21 +147,19 @@ bool isTouching(glm::vec3 objPos, glm::vec3 rayWorld) {
     return discriminant >= 0;
 }
 
-bool checkBombs(glm::vec3 rayWorld) {
+void checkBombs(glm::vec3 rayWorld) {
     for (const Bomb& bomb : state->bombs) {
         if (isTouching(bomb.pos, rayWorld)) {
             explosionPos = bomb.pos;
             explosionInflation = 0.01;
             setGameOver(true);
 
-            for (Ball& ball : state->balls) {
+            for (Ball& ball : state->balls)
                 ball.hit = true;
-            }
             state->bombs.clear();
-            return true;
+            return;
         }
     }
-    return false;
 }
 
 void checkShot(glm::vec3 rayWorld, bool leftClick) {
@@ -186,7 +184,6 @@ void checkShot(glm::vec3 rayWorld, bool leftClick) {
                 setCombo();
                 playMiss();
             }
-
             it->hit = true;
             checkWin();
             return;
@@ -198,8 +195,8 @@ void checkShot(glm::vec3 rayWorld, bool leftClick) {
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
-        if (checkBombs(ray)) return;
         checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT);
+        checkBombs(ray);
     }
 }
 
@@ -235,12 +232,12 @@ void setColor(unsigned int shader, char color) {
 
 void generateNewObjects() {
     double t = glfwGetTime();
-    if ((state->beatTimes.size() > state->lastBeat) && (state->beatTimes.at(state->lastBeat) - t < 2.6)) {
+    if ((state->beatTimes.size() > state->lastBeat) && (state->beatTimes.at(state->lastBeat) - t < 4.0)) {
         generateBall(state->lastBeat);
         state->lastBeat++;
     }
 
-    if ((state->lastBomb < state->bombTimes.size()) && (state->bombTimes.at(state->lastBomb) - t < 2.0)) {
+    if ((state->lastBomb < state->bombTimes.size()) && (state->bombTimes.at(state->lastBomb) - t < 3.0)) {
         generateBomb();
         state->lastBomb++;
     }
@@ -248,6 +245,7 @@ void generateNewObjects() {
 
 void drawBalls(unsigned int shader, Model& object) {
     glUseProgram(shader);
+    setColor(shader, 'w');
     for (const auto& ball : state->balls) {
         if (state->mode == 1) {
             if (ball.red) setColor(shader, 'r');
@@ -276,7 +274,7 @@ void drawBombs(unsigned int shader, Model& object) {
 
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
@@ -393,6 +391,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     float scoreScaling = 1.0f;
     std::string comboTx;
     std::string continueTx = "press [SPACE]";
+    //if (gameState->time >= 4.0) resumeSong(state->song);
 
     glClearColor(0., 0., 0.05, 1.0);
     resumeSong(state->song);
@@ -401,6 +400,12 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
     double renderStart, renderTime;
     while (!endGame) {
         renderStart = glfwGetTime();
+        
+        /*if (state->beatTimes[0] - renderStart <= 0.04) {
+            resumeSong(state->song);
+            std::cout << renderStart << "\n";
+
+        }*/
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
@@ -450,7 +455,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int rayShader, unsign
 
         //draw light tubes
         glUseProgram(lightShader);
-
         float lightPosX = LIMIT;
         float lightPosY = LIMIT;
         for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
