@@ -15,6 +15,7 @@
 GameState* state;
 int combo = 1;
 int wWidth, wHeight;
+float aspectRatio;
 
 bool won;
 bool gameOver;
@@ -23,7 +24,10 @@ float explosionInflation;
 
 glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
 
-glm::vec3 cameraAt = glm::vec3(0.0f, 0.5f, Z_LIMIT);
+glm::vec3 cameraAt;
+glm::vec3 cameraFront;
+glm::vec3 cameraUp;
+
 glm::mat4 projectionView;
 glm::mat4 view;
 glm::mat4 viewInverse;
@@ -248,6 +252,10 @@ void generateNewObjects() {
 void drawBalls(unsigned int shader, Model& object) {
     glUseProgram(shader);
     setColor(shader, 'w');
+
+    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
+
     for (const auto& ball : state->balls) {
         if (state->mode == 1) {
             if (ball.red) setColor(shader, 'r');
@@ -265,6 +273,10 @@ void drawBalls(unsigned int shader, Model& object) {
 void drawBombs(unsigned int shader, Model& object) {
     glUseProgram(shader);
     setColor(shader, 'g');
+
+    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
+
     for (const auto& bomb : state->bombs) {
         model = glm::mat4(1.0f);
         model = glm::translate(model, bomb.pos);
@@ -274,6 +286,31 @@ void drawBombs(unsigned int shader, Model& object) {
     glUseProgram(0);
 }
 
+
+void updateProjectionAndView() {
+    view = glm::lookAt(cameraAt, cameraAt + cameraFront, cameraUp);
+    viewInverse = glm::inverse(view);
+
+    projection = glm::perspective(glm::radians(15.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
+    projectionInverse = glm::inverse(projection);
+
+    projectionView = projection * view;
+}
+
+void processInput(GLFWwindow* window)
+{
+    //todo limit movement
+    const float cameraSpeed = 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraAt += cameraSpeed * cameraUp;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraAt -= cameraSpeed * cameraUp;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraAt -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraAt += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    updateProjectionAndView();
+}
 
 
 int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
@@ -316,49 +353,35 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     unsigned int VAOexplosion, VBOexplosion;
     initVABO(explosion, sizeof(explosion), 5 * sizeof(float), &VAOexplosion, &VBOexplosion, true);
 
+    //aspect-ratio of the window
+    glfwGetFramebufferSize(window, &wWidth, &wHeight);
+    aspectRatio = (float)wWidth / wHeight;
+
+    //3D matrices
+    cameraAt = glm::vec3(0.0f, -1.5f, Z_LIMIT);
+    cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    model = glm::mat4(1.0f);
+    updateProjectionAndView();
+
     //shaders
     glUseProgram(shader);
     setColor(shader, 'w');
     glUniform1f(glGetUniformLocation(shader, "material.shininess"), 32.0f);
-    unsigned int uLightColLoc = glGetUniformLocation(shader, "uLightCol");
-    glUniform3f(uLightColLoc, 1.0f, 1.0f, 1.0f);
+    glUniform3f(glGetUniformLocation(shader, "uLightCol"), 1.0f, 1.0f, 1.0f);
+    glUniform3f(glGetUniformLocation(shader, "uLightPos"), lightPosition[0], lightPosition[1], lightPosition[2]);
     
-    unsigned int uLightPosLoc = glGetUniformLocation(shader, "uLightPos");
-    glUniform3f(uLightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2]);
-    
-    unsigned int uCamAtLoc = glGetUniformLocation(shader, "uCameraAt");
-    glUniform3f(uCamAtLoc, cameraAt[0], cameraAt[1], cameraAt[2]);
-
-    unsigned int modelLoc = glGetUniformLocation(shader, "uM");
-    unsigned int projectionViewLoc = glGetUniformLocation(shader, "uPV");
-
-    //aspect-ratio of the window
-    glfwGetFramebufferSize(window, &wWidth, &wHeight);
-    float aspectRatio = (float)wWidth / wHeight;
-
-    //3D matrices
-    model = glm::mat4(1.0f);
-
-    view = glm::lookAt(cameraAt, glm::vec3(0.0f, -3.f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    viewInverse = glm::inverse(view);
-
-    projection = glm::perspective(glm::radians(15.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
-    projectionInverse = glm::inverse(projection);
-
-    projectionView = projection * view;
-
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); //(Adresa matrice, broj matrica koje saljemo, da li treba da se transponuju, pokazivac do matrica)
-    glUniformMatrix4fv(projectionViewLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
     glUseProgram(0);
 
     //shader light
     glUseProgram(lightShader);
     glm::mat4 modelLight = glm::mat4(1.0f);
-    unsigned int modelLightLoc = glGetUniformLocation(lightShader, "uM");
-
-    unsigned int projectionViewLightLoc = glGetUniformLocation(lightShader, "uPV");
-    glUniformMatrix4fv(projectionViewLightLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+    glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
 
     //texture
@@ -395,7 +418,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     std::string continueTx = "press [SPACE]";
 
     glClearColor(0., 0., 0.05, 1.0);
-    resumeSong(state->song);
+    //resumeSong(state->song);
 
     //render loop
     double renderStart, renderTime;
@@ -425,6 +448,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             glDisable(GL_DEPTH_TEST);
         }
 
+        processInput(window);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         //background
@@ -435,6 +460,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
             model = glm::mat4(1.0f);
             glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+
+            glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
             glBindTexture(GL_TEXTURE_2D, logoTexture);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -450,6 +477,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
         //draw light tubes
         glUseProgram(lightShader);
+
+        glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
+
         float lightPosX = LIMIT;
         float lightPosY = LIMIT;
         for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
@@ -458,13 +488,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
                 modelLight = glm::mat4(1.0f);
                 modelLight = glm::translate(modelLight, lightPosition);
                 modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
+                glUniformMatrix4fv(glGetUniformLocation(lightShader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
                 modelTube.Draw(lightShader);
             }
             modelLight = glm::mat4(1.0f);
             modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
             modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            glUniformMatrix4fv(modelLightLoc, 1, GL_FALSE, glm::value_ptr(modelLight));
+            glUniformMatrix4fv(glGetUniformLocation(lightShader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
             modelTube.Draw(lightShader);
         }
         glUseProgram(0);
