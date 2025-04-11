@@ -17,6 +17,9 @@ int combo = 1;
 int wWidth, wHeight;
 float aspectRatio;
 
+float lastX, lastY;
+float yaw, pitch;
+
 bool won;
 bool gameOver;
 glm::vec3 explosionPos;
@@ -288,6 +291,12 @@ void drawBombs(unsigned int shader, Model& object) {
 
 
 void updateProjectionAndView() {
+    glm::vec3 direction = glm::vec3(
+        cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+        sin(glm::radians(pitch)),
+        sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
+    cameraFront = glm::normalize(direction);
+
     view = glm::lookAt(cameraAt, cameraAt + cameraFront, cameraUp);
     viewInverse = glm::inverse(view);
 
@@ -299,27 +308,58 @@ void updateProjectionAndView() {
 
 void processInput(GLFWwindow* window)
 {
-    //todo limit movement
     const float cameraSpeed = 0.05f;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraAt += cameraSpeed * cameraUp;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraAt.y = std::min(cameraAt.y, 0.8f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         cameraAt -= cameraSpeed * cameraUp;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraAt.y = std::max(cameraAt.y, -0.6f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         cameraAt -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraAt.x = std::max(cameraAt.x, -0.6f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         cameraAt += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraAt.x = std::min(cameraAt.x, 0.6f);
+    }
+    updateProjectionAndView();
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.02f;
+    yaw += xoffset * sensitivity;
+    pitch += yoffset * sensitivity;
+
+    if (yaw > -30.0f)
+        yaw = -30.0f;
+    if (yaw < -150.0f)
+        yaw = -150.0f;
+
+    if (pitch > 60.0f)
+        pitch = 60.0f;
+    if (pitch < -60.0f)
+        pitch = -60.0f;
     updateProjectionAndView();
 }
 
 
 int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Model modelBall("resources/model/ball.obj");
     Model modelBomb("resources/model/grenade.obj");
     Model modelTube("resources/model/tube.obj");
+    Model modelTubeHor("resources/model/tubeH.obj");
 
     float background[] =
     {   // X       Y    Z     S    T 
@@ -358,9 +398,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     aspectRatio = (float)wWidth / wHeight;
 
     //3D matrices
-    cameraAt = glm::vec3(0.0f, -1.5f, Z_LIMIT);
-    cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    cameraAt = glm::vec3(0.0f, 0.5f, Z_LIMIT);
+    cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
+    yaw = -90.0f;
+    pitch = -5.0f;
 
     model = glm::mat4(1.0f);
     updateProjectionAndView();
@@ -398,10 +439,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
     glCullFace(GL_BACK);
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
+    lastX = wWidth / 2.0f;
+    lastY = wHeight / 2.0f;
 
     //setting the game state
     state = gameState;
@@ -418,7 +462,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     std::string continueTx = "press [SPACE]";
 
     glClearColor(0., 0., 0.05, 1.0);
-    //resumeSong(state->song);
+    resumeSong(state->song);
 
     //render loop
     double renderStart, renderTime;
@@ -495,7 +539,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
             modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             glUniformMatrix4fv(glGetUniformLocation(lightShader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-            modelTube.Draw(lightShader);
+            modelTubeHor.Draw(lightShader);
         }
         glUseProgram(0);
 
