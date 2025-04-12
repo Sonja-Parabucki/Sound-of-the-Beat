@@ -94,6 +94,8 @@ int main()
     }
     
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    CameraPosition camera = CameraPosition{ glm::vec3(0.0f, 0.2f, Z_LIMIT),
+                                            -90.0f, -2.0f };
 
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
@@ -134,7 +136,7 @@ int main()
         song = playSong((SONG_FOLDER + gameInstance.selectedSongName + ".wav").c_str(), false, true);
 
         //start new game
-        gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
+        gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0, camera };
         while (true) {
             if (game(window, ballShader, texShader, basicTexShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))

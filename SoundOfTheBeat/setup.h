@@ -20,6 +20,7 @@
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
+const float Z_LIMIT = 32.0f;
 
 unsigned int compileShader(GLenum type, const char* source);
 unsigned int createShader(const char* vsSource, const char* fsSource);
@@ -50,6 +51,12 @@ struct Bomb {
     glm::vec3 pos;
 };
 
+struct CameraPosition {
+    glm::vec3 pos;
+    float yaw;
+    float pitch;
+};
+
 struct GameState {
     irrklang::ISound* song;
     int score;
@@ -62,5 +69,5 @@ struct GameState {
     int lastBeat;
     std::vector<double> bombTimes;
     int lastBomb;
+    CameraPosition camera;
 };
-

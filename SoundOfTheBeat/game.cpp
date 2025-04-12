@@ -8,7 +8,6 @@
 #define r 0.12
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
-#define Z_LIMIT 32.0
 #define BALL_GEN_DELTA 2.5
 #define BOMB_GEN_DELTA BALL_GEN_DELTA - 0.5
 
@@ -66,6 +65,7 @@ void checkWin() {
 }
 
 void setGameOver(bool isExplosion = false) {
+    state->score = 0;
     pauseSong(state->song);
     gameOver = true;
     messageTx = "GAME OVER";
@@ -392,14 +392,14 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
     aspectRatio = (float)wWidth / wHeight;
 
-    //3D matrices
-    cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
+    //camera position
     cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
-    yaw = -90.0f;
-    pitch = -2.0f;
+    cameraAt = gameState->camera.pos;
+    pitch = gameState->camera.pitch;
+    yaw = gameState->camera.yaw;
+    updateProjectionAndView();
 
     model = glm::mat4(1.0f);
-    updateProjectionAndView();
 
     //shaders
     glUseProgram(shader);
@@ -477,6 +477,9 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             else {
                 pauseSong(state->song);
                 gameState->time = glfwGetTime();
+                gameState->camera.pos = cameraAt;
+                gameState->camera.pitch = pitch;
+                gameState->camera.yaw = yaw;
                 next = 1;   //pause game
             }
             endGame = true;
