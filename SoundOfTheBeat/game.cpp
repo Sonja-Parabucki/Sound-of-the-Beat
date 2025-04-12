@@ -129,13 +129,7 @@ void updateBombs() {
 
 
 glm::vec3 clickToWorldCoord(GLFWwindow* window) {
-    double mouseX, mouseY;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-    float ndcX = 2.0f * (mouseX / wWidth) - 1.0f;
-    float ndcY = 1.0f - 2.0f * (mouseY / wHeight);
-
-    glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
-
+    glm::vec4 rayClip = glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
     glm::vec4 rayEye = glm::inverse(projection) * rayClip;
     rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 
@@ -198,7 +192,6 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
     return false;
 }
 
-
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
@@ -235,7 +228,6 @@ void setColor(unsigned int shader, char color) {
         }
     }
 }
-
 
 void generateNewObjects() {
     double t = glfwGetTime();
@@ -401,7 +393,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     aspectRatio = (float)wWidth / wHeight;
 
     //3D matrices
-    cameraAt = glm::vec3(0.0f, 0.1f, Z_LIMIT);
+    cameraAt = glm::vec3(0.0f, 0.2f, Z_LIMIT);
     cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
     yaw = -90.0f;
     pitch = -2.0f;
@@ -509,7 +501,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             glUseProgram(texShader);
             glBindVertexArray(VAObg);
             glActiveTexture(GL_TEXTURE0);
-
+            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
             glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
             glBindTexture(GL_TEXTURE_2D, logoTexture);
