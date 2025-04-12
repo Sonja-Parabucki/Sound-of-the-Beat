@@ -2,10 +2,7 @@
 
 
 
-Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName) {
-    
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
+Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName, int mode) {
     float wWidth = windowWidth();
     float wHeight = windowHeight();
 
@@ -23,12 +20,9 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
             break;
     }
 
-    //render petlja
     glClearColor(0., 0., 0.05, 1.0);
 
     int next = -1;
-    int mode = 1;
-
     double renderStart, renderTime;
     while (next == -1) {
         renderStart = glfwGetTime();

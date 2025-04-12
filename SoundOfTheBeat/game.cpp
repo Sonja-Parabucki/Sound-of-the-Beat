@@ -33,9 +33,7 @@ glm::vec3 cameraUp;
 
 glm::mat4 projectionView;
 glm::mat4 view;
-glm::mat4 viewInverse;
 glm::mat4 projection;
-glm::mat4 projectionInverse;
 glm::mat4 model;
 std::string messageTx;
 
@@ -138,10 +136,10 @@ glm::vec3 clickToWorldCoord(GLFWwindow* window) {
 
     glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
 
-    glm::vec4 rayEye = projectionInverse * rayClip;
+    glm::vec4 rayEye = glm::inverse(projection) * rayClip;
     rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 
-    glm::vec3 rayWorld = glm::vec3(viewInverse * rayEye);
+    glm::vec3 rayWorld = glm::vec3(glm::inverse(view) * rayEye);
     rayWorld = glm::normalize(rayWorld);
     return rayWorld;
 }
@@ -298,16 +296,13 @@ void updateProjectionAndView() {
     cameraFront = glm::normalize(direction);
 
     view = glm::lookAt(cameraAt, cameraAt + cameraFront, cameraUp);
-    viewInverse = glm::inverse(view);
 
-    projection = glm::perspective(glm::radians(15.0f), aspectRatio, 0.1f, 100.0f); //Matrica perspektivne projekcije (FOV, Aspect Ratio, prednja ravan, zadnja ravan)
-    projectionInverse = glm::inverse(projection);
+    projection = glm::perspective(glm::radians(15.0f), aspectRatio, 0.1f, 100.0f);
 
     projectionView = projection * view;
 }
 
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window) {
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraAt += cameraSpeed * cameraUp;
@@ -328,8 +323,7 @@ void processInput(GLFWwindow* window)
     updateProjectionAndView();
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;
@@ -352,14 +346,23 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 }
 
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
+int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int basicTexShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     Model modelBall("resources/model/ball.obj");
     Model modelBomb("resources/model/grenade.obj");
     Model modelTube("resources/model/tube.obj");
     Model modelTubeHor("resources/model/tubeH.obj");
+
+    float dim = 0.025;
+    float aim[] =
+    {
+        -dim, -dim, 0.0,  0.0, 0.0,
+        -dim,  dim, 0.0,  0.0, 1.0,
+         dim, -dim, 0.0,  1.0, 0.0,
+         dim,  dim, 0.0,  1.0, 1.0,
+    };
+    unsigned int VAOaim, VBOaim;
+    initVABO(aim, sizeof(aim), 5 * sizeof(float), &VAOaim, &VBOaim, true);
 
     float background[] =
     {   // X       Y    Z     S    T 
@@ -398,10 +401,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     aspectRatio = (float)wWidth / wHeight;
 
     //3D matrices
-    cameraAt = glm::vec3(0.0f, 0.5f, Z_LIMIT);
+    cameraAt = glm::vec3(0.0f, 0.1f, Z_LIMIT);
     cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
     yaw = -90.0f;
-    pitch = -5.0f;
+    pitch = -2.0f;
 
     model = glm::mat4(1.0f);
     updateProjectionAndView();
@@ -425,10 +428,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
 
-    //texture
+    //textures
     unsigned int logoTexture = loadImageToTexture(texturePath);
     unsigned int backgroundTexture = loadImageToTexture("resources/img/stars.jpg");
     unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
+    unsigned int aimTexture = loadImageToTexture("resources/img/aim.png");
 
     glUseProgram(texShader);
     glUniform1i(glGetUniformLocation(texShader, "uTex"), 0);
@@ -436,6 +440,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
     
+    glUseProgram(basicTexShader);
+    glUniform1i(glGetUniformLocation(basicTexShader, "uTex"), 0);
+    glUniform1f(glGetUniformLocation(basicTexShader, "uAspectRatio"), aspectRatio);
+    glUseProgram(0);
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -502,9 +510,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             glBindVertexArray(VAObg);
             glActiveTexture(GL_TEXTURE0);
 
-            model = glm::mat4(1.0f);
-            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-
             glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
             glBindTexture(GL_TEXTURE_2D, logoTexture);
@@ -519,9 +524,21 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             glUseProgram(0);
         }
 
+        if (aimTexture != 0) {
+            glUseProgram(basicTexShader);
+            glBindVertexArray(VAOaim);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, aimTexture);
+
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
+
         //draw light tubes
         glUseProgram(lightShader);
-
         glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
         float lightPosX = LIMIT;
@@ -598,7 +615,10 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
     glDeleteTextures(1, &logoTexture);
     glDeleteTextures(1, &backgroundTexture);
+    glDeleteTextures(1, &aimTexture);
     glDeleteTextures(1, &explosionTexture);
+    glDeleteBuffers(1, &VBOaim);
+    glDeleteVertexArrays(1, &VAOaim);
     glDeleteBuffers(1, &VBObg);
     glDeleteVertexArrays(1, &VAObg);
     glDeleteBuffers(1, &VBOexplosion);

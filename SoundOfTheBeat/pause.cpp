@@ -2,9 +2,6 @@
 
 
 bool pause(GLFWwindow* window, int score) {
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
     float wWidth = windowWidth();
     float wHeight = windowHeight();
 

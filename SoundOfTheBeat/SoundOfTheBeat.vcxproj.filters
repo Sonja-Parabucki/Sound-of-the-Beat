@@ -54,10 +54,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="basic.frag">
+    <None Include="basicTex.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basic.vert">
+    <None Include="basicTex.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="ball.vert">

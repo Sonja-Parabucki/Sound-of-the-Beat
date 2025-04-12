@@ -158,8 +158,8 @@
   <ItemGroup>
     <None Include="ball.frag" />
     <None Include="ball.vert" />
-    <None Include="basic.frag" />
-    <None Include="basic.vert" />
+    <None Include="basicTex.frag" />
+    <None Include="basicTex.vert" />
     <None Include="letter.frag" />
     <None Include="letter.vert" />
     <None Include="light.frag" />

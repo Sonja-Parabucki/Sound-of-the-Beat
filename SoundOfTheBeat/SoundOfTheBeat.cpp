@@ -10,27 +10,6 @@ const std::string IMG_FOLDER = "resources/img/";
 const std::string BEATS_FOLDER = "resources/beats/";
 const std::string BOMB_FOLDER = "resources/bombs/";
 
-GLFWcursor* createCursor() {
-    int width, height, channels;
-    unsigned char* imageData = stbi_load("resources/cursor/point.png", &width, &height, &channels, 4);
-    if (!imageData) {
-        std::cout << "Error loading cursor image\n";
-        return NULL;
-    }
-
-    GLFWimage glfwImage;
-    glfwImage.width = width;
-    glfwImage.height = height;
-    glfwImage.pixels = imageData;
-
-    GLFWcursor* cursor = glfwCreateCursor(&glfwImage, width/2, height/2);
-    if (!cursor) {
-        std::cout << "Error creating cursor from image\n";
-    }
-
-    stbi_image_free(imageData);
-    return cursor;
-}
 
 std::map<std::string, int> loadSongsInfo() {
     std::map<std::string, int> songs;
@@ -113,13 +92,12 @@ int main()
         std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
         return 5;
     }
-
-    GLFWcursor* cursor = createCursor();
-    if (cursor)
-        glfwSetCursor(window, cursor);
+    
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     unsigned int ballShader = createShader("ball.vert", "ball.frag");
     unsigned int texShader = createShader("tex.vert", "tex.frag");
+    unsigned int basicTexShader = createShader("basicTex.vert", "basicTex.frag");
     unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
@@ -129,19 +107,20 @@ int main()
     std::vector<double> beats;
 
     GameState gameState;
+    Game gameInstance;
+    gameInstance.mode = 1;
     while (true) {
-        Game gameInstance = menu(window, songs, selectedSongName);
+        gameInstance = menu(window, songs, selectedSongName, gameInstance.mode);
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
             glDeleteProgram(ballShader);
             glDeleteProgram(texShader);
+            glDeleteProgram(basicTexShader);
+            glDeleteProgram(lightShader);
             deallocateLetterResources();
 
             stopSongs();
             stopEngine();
-
-            if (cursor)
-                glfwDestroyCursor(cursor);
 
             glfwTerminate();
             return 0;
@@ -157,7 +136,7 @@ int main()
         //start new game
         gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0 };
         while (true) {
-            if (game(window, ballShader, texShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
+            if (game(window, ballShader, texShader, basicTexShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str()) == 1) {
                 if (pause(window, gameState.score))
                     break; //back to menu
             }
