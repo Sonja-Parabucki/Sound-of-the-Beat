@@ -18,6 +18,7 @@ float aspectRatio;
 
 float lastX, lastY;
 float yaw, pitch;
+bool firstFrame;
 
 bool won;
 bool gameOver;
@@ -193,7 +194,7 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if ((button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
+    if (!gameOver && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
         if (checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT)) return;
         checkBombs(ray);
@@ -316,6 +317,12 @@ void processInput(GLFWwindow* window) {
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstFrame) {
+        lastX = xpos;
+        lastY = ypos;
+        return;
+    }
+
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;
@@ -345,16 +352,25 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     Model modelTube("resources/model/tube.obj");
     Model modelTubeHor("resources/model/tubeH.obj");
 
-    float dim = 0.025;
+    float dim1 = 0.01;
+    float dim2 = 0.045;
     float aim[] =
     {
-        -dim, -dim, 0.0,  0.0, 0.0,
-        -dim,  dim, 0.0,  0.0, 1.0,
-         dim, -dim, 0.0,  1.0, 0.0,
-         dim,  dim, 0.0,  1.0, 1.0,
+        0.0f, -dim2, 0.0f,
+        0.0f, -dim1, 0.0f,
+
+        0.0f, dim2, 0.0f,
+        0.0f, dim1, 0.0f,
+
+        -dim2, 0.0f, 0.0f,
+        -dim1, 0.0f, 0.0f,
+
+        dim2, 0.0f, 0.0f,
+        dim1, 0.0f, 0.0f,
+
     };
     unsigned int VAOaim, VBOaim;
-    initVABO(aim, sizeof(aim), 5 * sizeof(float), &VAOaim, &VBOaim, true);
+    initVABO(aim, sizeof(aim), 3 * sizeof(float), &VAOaim, &VBOaim, true);
 
     float background[] =
     {   // X       Y    Z     S    T 
@@ -424,7 +440,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     unsigned int logoTexture = loadImageToTexture(texturePath);
     unsigned int backgroundTexture = loadImageToTexture("resources/img/stars.jpg");
     unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
-    unsigned int aimTexture = loadImageToTexture("resources/img/aim.png");
 
     glUseProgram(texShader);
     glUniform1i(glGetUniformLocation(texShader, "uTex"), 0);
@@ -433,8 +448,8 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glUseProgram(0);
     
     glUseProgram(basicTexShader);
-    glUniform1i(glGetUniformLocation(basicTexShader, "uTex"), 0);
     glUniform1f(glGetUniformLocation(basicTexShader, "uAspectRatio"), aspectRatio);
+    auto aimColLoc = glGetUniformLocation(basicTexShader, "uCol");
     glUseProgram(0);
 
     //options
@@ -446,6 +461,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
     lastX = wWidth / 2.0f;
     lastY = wHeight / 2.0f;
+    firstFrame = true;
 
     //setting the game state
     state = gameState;
@@ -519,18 +535,25 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
             glUseProgram(0);
         }
 
-        if (aimTexture != 0) {
-            glUseProgram(basicTexShader);
-            glBindVertexArray(VAOaim);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, aimTexture);
+        //draw aim
+        glUseProgram(basicTexShader);
+        glBindVertexArray(VAOaim);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOaim);
 
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glUniform3f(aimColLoc, 0.0, 0.2, 0.0);
+        glLineWidth(2);
+        for (int i = 0; i < sizeof(aim)/3; i += 2)
+            glDrawArrays(GL_LINES, i, 2);
 
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindVertexArray(0);
-            glUseProgram(0);
-        }
+        glUniform3f(aimColLoc, 1.0, 1.0, 0.2);
+        glLineWidth(6);
+        for (int i = 0; i < sizeof(aim) / 3; i += 2)
+            glDrawArrays(GL_LINES, i, 2);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+        
 
         //draw light tubes
         glUseProgram(lightShader);
@@ -564,7 +587,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
         if (!gameOver) {
             generateNewObjects();
         }
-        if (state->score > 0) {
+        if (state->score > 0 || explosionPos[0] > -1) {
             updateBalls();
             updateBombs();
         }
@@ -606,11 +629,11 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
         if (renderTime < FRAME_TIME) {
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
         }
+        if (firstFrame) firstFrame = false;
     }
 
     glDeleteTextures(1, &logoTexture);
     glDeleteTextures(1, &backgroundTexture);
-    glDeleteTextures(1, &aimTexture);
     glDeleteTextures(1, &explosionTexture);
     glDeleteBuffers(1, &VBOaim);
     glDeleteVertexArrays(1, &VAOaim);

@@ -1,11 +1,11 @@
 #version 330 core
 
-in vec2 chTex;
 out vec4 outCol;
 
-uniform sampler2D uTex;
+uniform vec3 uCol;
+
 
 void main()
 {
-	outCol = texture(uTex, chTex);
+	outCol = vec4(uCol, 1.0);
 }
