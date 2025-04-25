@@ -205,27 +205,27 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void setColor(unsigned int shader, char color) {
     switch (color) {
         case 'r': {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.45f, 0.f, 0.f);
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.2f, 0.f, 0.f);
             glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.6f, 0.6f);
             break;
         }
         case 'b': {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.1f, 0.06f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.05f, 0.f, 0.45f);
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.14f, 0.34f, 0.0f);
             glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.5f, 0.5f, 0.5f);
             break;
         }
         case 'g': {
             glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.22f, 0.25f, 0.25f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.1f, 0.1f, 0.1f);
             glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.33f, 0.33f, 0.35f);
             break;
         }
         default: {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.2f, 0.2f, 0.2f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.65f, 0.65f, 0.65f);
-            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.7f, 0.7f);
+            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.34f, 0.35f, 0.15f);
+            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.2f, 0.2f, 0.2f);
         }
     }
 }
@@ -245,7 +245,7 @@ void generateNewObjects() {
 
 void drawBalls(unsigned int shader, Model& object) {
     glUseProgram(shader);
-    setColor(shader, 'w');
+    setColor(shader, 'y');
 
     glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
     glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
@@ -367,7 +367,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
         dim2, 0.0f, 0.0f,
         dim1, 0.0f, 0.0f,
-
     };
     unsigned int VAOaim, VBOaim;
     initVABO(aim, sizeof(aim), 3 * sizeof(float), &VAOaim, &VBOaim, true);
@@ -475,7 +474,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     std::string comboTx;
     std::string continueTx = "press [SPACE]";
 
-    glClearColor(0., 0., 0.05, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     resumeSong(state->song);
 
     //render loop
@@ -538,13 +537,13 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
         glBindVertexArray(VAOaim);
         glBindBuffer(GL_ARRAY_BUFFER, VBOaim);
 
-        glUniform3f(aimColLoc, 0.0, 0.2, 0.0);
-        glLineWidth(2);
+        glUniform3f(aimColLoc, 0., 0., 0.3);
+        glLineWidth(4);
         for (int i = 0; i < sizeof(aim)/3; i += 2)
             glDrawArrays(GL_LINES, i, 2);
 
-        glUniform3f(aimColLoc, 1.0, 1.0, 0.2);
-        glLineWidth(6);
+        glUniform3f(aimColLoc, 0.85, 0.9, 0.3);
+        glLineWidth(8);
         for (int i = 0; i < sizeof(aim) / 3; i += 2)
             glDrawArrays(GL_LINES, i, 2);
         

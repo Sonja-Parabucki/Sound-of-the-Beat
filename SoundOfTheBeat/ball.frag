@@ -36,7 +36,7 @@ vec3 calcOne(vec3 lightPos)
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = spec * material.specular;
 
-	float attenuation = 1.0 / (1.0 + distance * 0.045  + distance * distance * 0.0075);
+	float attenuation = 1.0 / (0.4 + distance * 0.045  + distance * distance * 0.0075);
 
 	return attenuation * (ambient + diffuse + specular) * uLightCol;
 }
