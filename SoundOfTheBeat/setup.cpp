@@ -91,7 +91,7 @@ unsigned int loadImageToTexture(const char* filePath) {
 
     unsigned char* ImageData = stbi_load(filePath, &TextureWidth, &TextureHeight, &TextureChannels, 0);
     if (ImageData == NULL) {
-        std::string defaultPath = "resources/img/stars.jpg";
+        std::string defaultPath = "resources/img/backup.png";
         ImageData = stbi_load(defaultPath.c_str(), &TextureWidth, &TextureHeight, &TextureChannels, 0);
         std::cout << "Failed to load image " << filePath << std::endl;
     }

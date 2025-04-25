@@ -320,7 +320,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     if (firstFrame) {
         lastX = xpos;
         lastY = ypos;
-        return;
+        firstFrame = false;
     }
 
     float xoffset = xpos - lastX;
@@ -438,7 +438,7 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
     //textures
     unsigned int logoTexture = loadImageToTexture(texturePath);
-    unsigned int backgroundTexture = loadImageToTexture("resources/img/stars.jpg");
+    unsigned int backgroundTexture = loadImageToTexture("resources/img/back.png");
     unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
 
     glUseProgram(texShader);
@@ -459,8 +459,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    lastX = wWidth / 2.0f;
-    lastY = wHeight / 2.0f;
     firstFrame = true;
 
     //setting the game state
@@ -629,7 +627,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
         if (renderTime < FRAME_TIME) {
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
         }
-        if (firstFrame) firstFrame = false;
     }
 
     glDeleteTextures(1, &logoTexture);

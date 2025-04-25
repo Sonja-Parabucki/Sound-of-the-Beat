@@ -1,12 +1,12 @@
 (I Can't Get No) Satisfaction=487
 Another One Bites the Dust=407
 Billie Jean=218
-Chippin' In=0
+Chippin' In=46
 Dirty Deeds Done Dirt Cheap=611
 Don't Stop Me Now=0
 Doom And Gloom=0
 Enemy=586
-Eye Of The Tiger=0
+Eye Of The Tiger=20
 I Need a Hero=94
 Never Gonna Give You Up=1126
 TNT=19
