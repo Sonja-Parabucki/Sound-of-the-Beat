@@ -20,6 +20,8 @@ float lastX, lastY;
 float yaw, pitch;
 bool firstFrame;
 
+bool wasSpacePressed;
+
 bool won;
 bool gameOver;
 glm::vec3 explosionPos;
@@ -382,6 +384,28 @@ void updateProjectionAndView() {
 }
 
 void processInput(GLFWwindow* window) {
+    if (paused && glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        endGame = true;
+        return;
+    }
+    bool spacePressed = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+    if (spacePressed && !wasSpacePressed) {
+        if (paused) {
+            glfwSetTime(state->time);
+        }
+        else {
+            if (won || gameOver) endGame = true;
+            else {
+                pauseSong(state->song);
+                state->time = glfwGetTime();
+            }
+        }
+        paused = !paused;
+        wasSpacePressed = true;
+        return;
+    }
+    wasSpacePressed = spacePressed;
+
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraAt += cameraSpeed * cameraUp;
@@ -432,19 +456,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 void drawPause(GLFWwindow* window) {
     double renderStart = glfwGetTime();
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        endGame = true;
-        return;
-    }
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
-        paused = false;
-        glfwSetTime(state->time);
-        return;
-    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.05, 0.0, 0.0, 1.0);
     renderText("GAME PAUSED", 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
-    renderText("[ENTER] to CONTINUE", 120, wHeight / 2, 1, 1., 1., 1.);
+    renderText("[SPACE] to CONTINUE", 120, wHeight / 2, 1, 1., 1., 1.);
     renderText("[ESC] back to MENU", 120, wHeight / 2 - 80, 1, 1., 1., 1.);
     std::string scoreTx = "SCORE: " + std::to_string(state->score);
     renderText(scoreTx, 120, 150, 1.2, 1., 1., 1.);
@@ -566,7 +581,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     glEnable(GL_DEPTH_TEST);
 
     firstFrame = true;
-    paused = false;
+    wasSpacePressed = false;
 
     //setting the game state
     state = gameState;
@@ -575,6 +590,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     endGame = false;
     won = false;
     gameOver = false;
+    paused = false;
     explosionPos = glm::vec3(-1.0);
 
     std::string scoreTx;
@@ -584,22 +600,13 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
 
     double renderStart, renderTime;
     while (!endGame) {
+        processInput(window);
 
         if (paused) drawPause(window);
         else {
             renderStart = glfwGetTime();
             state->song->setIsPaused(gameOver);
             
-            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-                if (won || gameOver) endGame = true;
-                else {
-                    paused = true;
-                    pauseSong(state->song);
-                    gameState->time = glfwGetTime();
-                }
-            }
-            processInput(window);
-
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.0, 0.0, 0.0, 1.0);
             drawBackground(texShader, VAObg, logoTexture, backgroundTexture);
