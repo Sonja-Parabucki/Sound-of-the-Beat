@@ -9,6 +9,6 @@ Enemy=586
 Eye Of The Tiger=367
 I Need a Hero=1565
 Never Gonna Give You Up=1126
-TNT=60
+TNT=164
 Wake Me Up Before You Go Go=1207
 manamanam=10

@@ -143,8 +143,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aim.cpp" />
+    <ClCompile Include="ball.cpp" />
+    <ClCompile Include="bomb.cpp" />
+    <ClCompile Include="explosion.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="help.cpp" />
+    <ClCompile Include="light.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
@@ -152,6 +157,7 @@
     <ClCompile Include="song.cpp" />
     <ClCompile Include="SoundOfTheBeat.cpp" />
     <ClCompile Include="stb.cpp" />
+    <ClCompile Include="background.cpp" />
     <ClCompile Include="textUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,15 +174,22 @@
     <None Include="tex.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aim.h" />
+    <ClInclude Include="ball.h" />
+    <ClInclude Include="bomb.h" />
+    <ClInclude Include="explosion.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="help.h" />
+    <ClInclude Include="lights.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="resources.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="song.h" />
     <ClInclude Include="stb.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="background.h" />
     <ClInclude Include="textUtil.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

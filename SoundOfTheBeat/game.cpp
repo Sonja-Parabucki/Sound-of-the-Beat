@@ -1,13 +1,7 @@
 #include "game.h"
 #include <random>
 
-#define SPEED 0.2
-#define BOMB_SPEED SPEED + 0.05
-#define INFLATION_SPEED 0.6
-#define EXPLOSION_SPEED 0.05
 #define r 0.12
-#define LIMIT 0.75
-#define GEN_LIMIT 0.35
 #define BALL_GEN_DELTA 2.5
 #define BOMB_GEN_DELTA BALL_GEN_DELTA - 0.5
 
@@ -19,7 +13,6 @@ float aspectRatio;
 float lastX, lastY;
 float yaw, pitch;
 bool firstFrame;
-
 bool wasSpacePressed;
 
 bool won;
@@ -29,8 +22,6 @@ float explosionInflation;
 bool paused;
 bool endGame;
 
-glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
-
 glm::vec3 cameraAt;
 glm::vec3 cameraFront;
 glm::vec3 cameraUp;
@@ -38,16 +29,11 @@ glm::vec3 cameraUp;
 glm::mat4 projectionView;
 glm::mat4 view;
 glm::mat4 projection;
-glm::mat4 model;
 std::string messageTx;
 
 
 float random() {
     return -GEN_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (GEN_LIMIT *2)));
-}
-
-float random(float a, float b) {
-    return a + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (b-a)));
 }
 
 void setCombo() {
@@ -81,13 +67,9 @@ void setGameOver(bool isExplosion = false) {
 }
 
 void generateBall(int beatInd) {
-    if (beatInd >= state->beatTimes.size()) {
-        return;
-    }
+    if (beatInd >= state->beatTimes.size()) return;
     Ball ball{ glm::vec3(random(), random(), 0.f), state->beatTimes.at(beatInd), false, 1};
-
-    if (state->mode == 1)
-        ball.red = ball.pos[0] <= 0;
+    if (state->mode == 1) ball.red = ball.pos[0] <= 0;
     state->balls.push_back(ball);
 }
 
@@ -107,17 +89,13 @@ void updateBalls() {
             state->streak = 0;
             playRay();
 
-            if (state->score <= 0)
-                setGameOver();
+            if (state->score <= 0) setGameOver();
         }
-
-        if (it->hit)
-            it->inflation *= INFLATION_SPEED;
+        if (it->hit) it->inflation *= INFLATION_SPEED;
 
         if (it->pos[2] > Z_LIMIT || it->inflation < 0.01)   //not visible
             it = state->balls.erase(it);
-        else
-            ++it;
+        else ++it;
     }
     checkWin();
 }
@@ -127,8 +105,7 @@ void updateBombs() {
         it->pos[2] += BOMB_SPEED;
         if (it->pos[2] > Z_LIMIT)   //fell off from the screen
             it = state->bombs.erase(it);
-        else
-            ++it; 
+        else ++it; 
     }
 }
 
@@ -169,8 +146,7 @@ void checkBombs(glm::vec3 rayWorld) {
 
 bool checkShot(glm::vec3 rayWorld, bool leftClick) {
     for (auto it = state->balls.begin(); it != state->balls.end(); ++it) {
-        if (it->hit)
-            continue;
+        if (it->hit) continue;
         
         if (state->mode == 1 && it->red != leftClick)
             continue;
@@ -198,39 +174,11 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (paused) return;
     if (!gameOver && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
         if (checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT)) return;
         checkBombs(ray);
-    }
-}
-
-
-void setColor(unsigned int shader, char color) {
-    switch (color) {
-        case 'r': {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.2f, 0.f, 0.f);
-            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.6f, 0.6f);
-            break;
-        }
-        case 'b': {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.14f, 0.34f, 0.0f);
-            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.5f, 0.5f, 0.5f);
-            break;
-        }
-        case 'g': {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.1f, 0.1f, 0.1f);
-            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.33f, 0.33f, 0.35f);
-            break;
-        }
-        default: {
-            glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
-            glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.34f, 0.35f, 0.15f);
-            glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.2f, 0.2f, 0.2f);
-        }
     }
 }
 
@@ -247,127 +195,6 @@ void generateNewObjects() {
     }
 }
 
-void drawBalls(unsigned int shader, Model& object) {
-    glUseProgram(shader);
-    setColor(shader, 'y');
-
-    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    for (const auto& ball : state->balls) {
-        if (state->mode == 1) {
-            if (ball.red) setColor(shader, 'r');
-            else setColor(shader, 'b');
-        }
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, ball.pos);
-        model = glm::scale(model, glm::vec3(ball.inflation));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-        object.Draw(shader);
-    }
-    glUseProgram(0);
-}
-
-void drawBombs(unsigned int shader, Model& object) {
-    glUseProgram(shader);
-    setColor(shader, 'g');
-
-    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    for (const auto& bomb : state->bombs) {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, bomb.pos);
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-        object.Draw(shader);
-    }
-    glUseProgram(0);
-}
-
-void drawLights(unsigned int shader, Model& modelTube, Model& modelTubeHor) {
-    glUseProgram(shader);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    glm::mat4 modelLight;
-    float lightPosX = LIMIT;
-    float lightPosY = LIMIT;
-    for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
-        for (int j = 0; j < 2; j++, lightPosY = -lightPosY) {
-            lightPosition = glm::vec3(lightPosX, lightPosY, 0.0f);
-            modelLight = glm::mat4(1.0f);
-            modelLight = glm::translate(modelLight, lightPosition);
-            modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-            modelTube.Draw(shader);
-        }
-        modelLight = glm::mat4(1.0f);
-        modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
-        modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-        modelTubeHor.Draw(shader);
-    }
-    glUseProgram(0);
-}
-
-void drawBackground(unsigned int shader, unsigned int VAO, unsigned int logoTexture, unsigned int backgroundTexture) {
-    if (logoTexture == 0 || backgroundTexture == 0) return;
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glActiveTexture(GL_TEXTURE0);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    glBindTexture(GL_TEXTURE_2D, logoTexture);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
-    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
-void drawExplosion(unsigned int shader, unsigned int VAO, unsigned int texture) {
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glActiveTexture(GL_TEXTURE0);
-
-    if (explosionInflation < 1.0)
-        explosionInflation += EXPLOSION_SPEED;
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(explosionPos));
-    model = glm::scale(model, glm::vec3(explosionInflation));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
-void drawAim(unsigned int shader, unsigned int VAO, unsigned int VBO) {
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glUniform3f(glGetUniformLocation(shader, "uCol"), 0., 0., 0.3);
-    glLineWidth(4);
-    for (int i = 0; i < 8; i += 2)
-        glDrawArrays(GL_LINES, i, 2);
-
-    glUniform3f(glGetUniformLocation(shader, "uCol"), 0.85, 0.9, 0.3);
-    glLineWidth(8);
-    for (int i = 0; i < 8; i += 2)
-        glDrawArrays(GL_LINES, i, 2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
 
 void updateProjectionAndView() {
     glm::vec3 direction = glm::vec3(
@@ -390,14 +217,13 @@ void processInput(GLFWwindow* window) {
     }
     bool spacePressed = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
     if (spacePressed && !wasSpacePressed) {
-        if (paused) {
-            glfwSetTime(state->time);
-        }
+        if (paused) glfwSetTime(state->time);
         else {
             if (won || gameOver) endGame = true;
             else {
                 pauseSong(state->song);
                 state->time = glfwGetTime();
+                firstFrame = true;
             }
         }
         paused = !paused;
@@ -405,7 +231,7 @@ void processInput(GLFWwindow* window) {
         return;
     }
     wasSpacePressed = spacePressed;
-
+    if (paused) return;
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraAt += cameraSpeed * cameraUp;
@@ -427,12 +253,12 @@ void processInput(GLFWwindow* window) {
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (paused) return;
     if (firstFrame) {
         lastX = xpos;
         lastY = ypos;
         firstFrame = false;
     }
-
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;
@@ -468,68 +294,10 @@ void drawPause(GLFWwindow* window) {
 }
 
 
-void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int basicTexShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
-    
-    Model modelBall("resources/model/ball.obj");
-    Model modelBomb("resources/model/grenade.obj");
-    Model modelTube("resources/model/tube.obj");
-    Model modelTubeHor("resources/model/tubeH.obj");
+void game(GLFWwindow* window, GameState* gameState, Resources& resources, const char* texturePath) {
 
-    float dim1 = 0.01;
-    float dim2 = 0.045;
-    float aim[] =
-    {
-        0.0f, -dim2, 0.0f,
-        0.0f, -dim1, 0.0f,
-
-        0.0f, dim2, 0.0f,
-        0.0f, dim1, 0.0f,
-
-        -dim2, 0.0f, 0.0f,
-        -dim1, 0.0f, 0.0f,
-
-        dim2, 0.0f, 0.0f,
-        dim1, 0.0f, 0.0f,
-    };
-    unsigned int VAOaim, VBOaim;
-    initVABO(aim, sizeof(aim), 3 * sizeof(float), &VAOaim, &VBOaim, true);
-
-    float background[] =
-    {   // X       Y    Z     S    T 
-        //logo
-        -LIMIT, -LIMIT, 0,  0.0, 0.0,
-        -LIMIT,  LIMIT, 0,  0.0, 1.0,
-         LIMIT, -LIMIT, 0,  1.0, 0.0,
-         LIMIT,  LIMIT, 0,  1.0, 1.0,
-        //left side
-        -LIMIT, -LIMIT, 0.0,     0.0, 0.0,
-        -LIMIT,  LIMIT, 0.0,     0.0, 1.0,
-        -LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
-        -LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
-        //right side
-         LIMIT, -LIMIT, 0.0,     0.0, 0.0,
-         LIMIT,  LIMIT, 0.0,     0.0, 1.0,
-         LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
-         LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
-
-    };
-    unsigned int VAObg, VBObg;
-    initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
-
-    float explosion[] =
-    {
-        -GEN_LIMIT, -GEN_LIMIT, 1.0,  0.0, 0.0,
-        -GEN_LIMIT,  GEN_LIMIT, 1.0,  0.0, 1.0,
-         GEN_LIMIT, -GEN_LIMIT, 1.0,  1.0, 0.0,
-         GEN_LIMIT,  GEN_LIMIT, 1.0,  1.0, 1.0,
-    };
-    unsigned int VAOexplosion, VBOexplosion;
-    initVABO(explosion, sizeof(explosion), 5 * sizeof(float), &VAOexplosion, &VBOexplosion, true);
-
-    //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
     aspectRatio = (float)wWidth / wHeight;
-
     //camera position
     cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
     cameraAt = gameState->camera.pos;
@@ -537,39 +305,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     yaw = gameState->camera.yaw;
     updateProjectionAndView();
 
-    model = glm::mat4(1.0f);
-    //shaders
-    glUseProgram(shader);
-    setColor(shader, 'w');
-    glUniform1f(glGetUniformLocation(shader, "material.shininess"), 32.0f);
-    glUniform3f(glGetUniformLocation(shader, "uLightCol"), 1.0f, 1.0f, 1.0f);
-    glUniform3f(glGetUniformLocation(shader, "uLightPos"), lightPosition[0], lightPosition[1], lightPosition[2]);
-    
-    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    glUseProgram(0);
-
-    //shader light
-    glUseProgram(lightShader);
-    glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-    glUseProgram(0);
-
-    //textures
-    unsigned int logoTexture = loadImageToTexture(texturePath);
-    unsigned int backgroundTexture = loadImageToTexture("resources/img/back.png");
-    unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
-
-    glUseProgram(texShader);
-    glUniform1i(glGetUniformLocation(texShader, "uTex"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-    glUseProgram(0);
-    
-    glUseProgram(basicTexShader);
-    glUniform1f(glGetUniformLocation(basicTexShader, "uAspectRatio"), aspectRatio);
-    glUseProgram(0);
+    resources.background.setLogoTexture(texturePath);
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -606,28 +342,31 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
             renderStart = glfwGetTime();
             state->song->setIsPaused(gameOver);
             
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(0.0, 0.0, 0.0, 1.0);
-            drawBackground(texShader, VAObg, logoTexture, backgroundTexture);
-            drawAim(basicTexShader, VAOaim, VBOaim);
-            drawLights(lightShader, modelTube, modelTubeHor);
-
-            if (won || gameOver) {
-                renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
-                renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
-                scoreScaling = 1.5f;
-            }
             if (!gameOver)
                 generateNewObjects();
             if (state->score > 0 || explosionPos[0] > -1) {
                 updateBalls();
                 updateBombs();
             }
-            drawBalls(shader, modelBall);
-            drawBombs(shader, modelBomb);
-            if (explosionPos[0] > -1)
-                drawExplosion(texShader, VAOexplosion, explosionTexture);
+            
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.0, 0.0, 0.0, 1.0);
+            resources.background.draw(projectionView);
+            resources.aim.draw();
+            resources.lights.draw(projectionView);
+            resources.ballModel.draw(state->balls, cameraAt, projectionView, state->mode);
+            resources.bombModel.draw(state->bombs, cameraAt, projectionView);
+            if (explosionPos[0] > -1) {
+                if (explosionInflation < 1.0)
+                    explosionInflation += EXPLOSION_SPEED;
+                resources.explosion.draw(explosionPos, explosionInflation);
+            }
 
+            if (won || gameOver) {
+                renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
+                renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
+                scoreScaling = 1.5f;
+            }
             scoreTx = "SCORE: " + std::to_string(state->score);
             renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
             comboTx = 'x' + std::to_string(combo);
@@ -635,17 +374,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
 
             limitFPS(renderStart);
         }
-
         glfwSwapBuffers(window);
         glfwPollEvents();   
     }
-    glDeleteTextures(1, &logoTexture);
-    glDeleteTextures(1, &backgroundTexture);
-    glDeleteTextures(1, &explosionTexture);
-    glDeleteBuffers(1, &VBOaim);
-    glDeleteVertexArrays(1, &VAOaim);
-    glDeleteBuffers(1, &VBObg);
-    glDeleteVertexArrays(1, &VAObg);
-    glDeleteBuffers(1, &VBOexplosion);
-    glDeleteVertexArrays(1, &VAOexplosion);
 }

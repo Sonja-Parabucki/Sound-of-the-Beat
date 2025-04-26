@@ -79,6 +79,5 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
         glfwPollEvents();
         limitFPS(renderStart);
     }
-
     return Game{ mode, next, iter->first };
 }

@@ -5,15 +5,14 @@
 #include <map>
 
 const std::string SONG_FOLDER = "resources/songs/";
-const std::string IMG_FOLDER = "resources/img/";
+const std::string SONG_IMG_FOLDER = "resources/song_images/";
 const std::string BEATS_FOLDER = "resources/beats/";
 const std::string BOMB_FOLDER = "resources/bombs/";
 
 
 std::map<std::string, int> loadSongsInfo() {
-    std::map<std::string, int> songs;
-    
     std::string path = "resources/songList.txt";
+    std::map<std::string, int> songs;
     std::string name, line;
     int score;
     
@@ -100,6 +99,14 @@ int main()
     unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
+    Aim aim(basicTexShader);
+    Background background(texShader);
+    BallModel ballModel(ballShader);
+    BombModel bombModel(ballShader);
+    Explosion explosion(texShader);
+    Lights lights(lightShader);
+    Resources resources{ aim, background, ballModel, bombModel, explosion, lights };
+
     startEngine();
     //game song
     irrklang::ISound* song;
@@ -136,8 +143,7 @@ int main()
         //start new game
         CameraPosition camera = CameraPosition{ glm::vec3(0.0f, 0.2f, Z_LIMIT), -90.0f, -2.0f };
         gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0, camera };
-        game(window, ballShader, texShader, basicTexShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str());
-        
+        game(window, &gameState, resources, (SONG_IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str());
         stopSong(song);
 
         std::cout << "SCORE: " << gameState.score << std::endl;
