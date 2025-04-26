@@ -14,8 +14,7 @@ Aim::Aim(unsigned int shader) {
                     -dim1, 0.0f, 0.0f,
 
                     dim2, 0.0f, 0.0f,
-                    dim1, 0.0f, 0.0f,
-    };
+                    dim1, 0.0f, 0.0f, };
     initVABO(aim, sizeof(aim), 3 * sizeof(float), &this->VAO, &this->VBO, true);
 
     float aspectRatio = (float) windowWidth()/ windowHeight();

@@ -67,13 +67,9 @@ void setGameOver(bool isExplosion = false) {
 }
 
 void generateBall(int beatInd) {
-    if (beatInd >= state->beatTimes.size()) {
-        return;
-    }
+    if (beatInd >= state->beatTimes.size()) return;
     Ball ball{ glm::vec3(random(), random(), 0.f), state->beatTimes.at(beatInd), false, 1};
-
-    if (state->mode == 1)
-        ball.red = ball.pos[0] <= 0;
+    if (state->mode == 1) ball.red = ball.pos[0] <= 0;
     state->balls.push_back(ball);
 }
 
@@ -93,17 +89,13 @@ void updateBalls() {
             state->streak = 0;
             playRay();
 
-            if (state->score <= 0)
-                setGameOver();
+            if (state->score <= 0) setGameOver();
         }
-
-        if (it->hit)
-            it->inflation *= INFLATION_SPEED;
+        if (it->hit) it->inflation *= INFLATION_SPEED;
 
         if (it->pos[2] > Z_LIMIT || it->inflation < 0.01)   //not visible
             it = state->balls.erase(it);
-        else
-            ++it;
+        else ++it;
     }
     checkWin();
 }
@@ -113,8 +105,7 @@ void updateBombs() {
         it->pos[2] += BOMB_SPEED;
         if (it->pos[2] > Z_LIMIT)   //fell off from the screen
             it = state->bombs.erase(it);
-        else
-            ++it; 
+        else ++it; 
     }
 }
 
@@ -155,8 +146,7 @@ void checkBombs(glm::vec3 rayWorld) {
 
 bool checkShot(glm::vec3 rayWorld, bool leftClick) {
     for (auto it = state->balls.begin(); it != state->balls.end(); ++it) {
-        if (it->hit)
-            continue;
+        if (it->hit) continue;
         
         if (state->mode == 1 && it->red != leftClick)
             continue;
@@ -184,6 +174,7 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (paused) return;
     if (!gameOver && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS) {
         auto ray = clickToWorldCoord(window);
         if (checkShot(ray, button == GLFW_MOUSE_BUTTON_LEFT)) return;
@@ -226,14 +217,13 @@ void processInput(GLFWwindow* window) {
     }
     bool spacePressed = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
     if (spacePressed && !wasSpacePressed) {
-        if (paused) {
-            glfwSetTime(state->time);
-        }
+        if (paused) glfwSetTime(state->time);
         else {
             if (won || gameOver) endGame = true;
             else {
                 pauseSong(state->song);
                 state->time = glfwGetTime();
+                firstFrame = true;
             }
         }
         paused = !paused;
@@ -241,7 +231,7 @@ void processInput(GLFWwindow* window) {
         return;
     }
     wasSpacePressed = spacePressed;
-
+    if (paused) return;
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraAt += cameraSpeed * cameraUp;
@@ -263,12 +253,12 @@ void processInput(GLFWwindow* window) {
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (paused) return;
     if (firstFrame) {
         lastX = xpos;
         lastY = ypos;
         firstFrame = false;
     }
-
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;
@@ -306,7 +296,6 @@ void drawPause(GLFWwindow* window) {
 
 void game(GLFWwindow* window, GameState* gameState, Resources& resources, const char* texturePath) {
 
-    //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
     aspectRatio = (float)wWidth / wHeight;
     //camera position
@@ -353,20 +342,15 @@ void game(GLFWwindow* window, GameState* gameState, Resources& resources, const 
             renderStart = glfwGetTime();
             state->song->setIsPaused(gameOver);
             
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(0.0, 0.0, 0.0, 1.0);
-            
-            if (won || gameOver) {
-                renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
-                renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
-                scoreScaling = 1.5f;
-            }
             if (!gameOver)
                 generateNewObjects();
             if (state->score > 0 || explosionPos[0] > -1) {
                 updateBalls();
                 updateBombs();
             }
+            
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.0, 0.0, 0.0, 1.0);
             resources.background.draw(projectionView);
             resources.aim.draw();
             resources.lights.draw(projectionView);
@@ -376,6 +360,12 @@ void game(GLFWwindow* window, GameState* gameState, Resources& resources, const 
                 if (explosionInflation < 1.0)
                     explosionInflation += EXPLOSION_SPEED;
                 resources.explosion.draw(explosionPos, explosionInflation);
+            }
+
+            if (won || gameOver) {
+                renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
+                renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
+                scoreScaling = 1.5f;
             }
             scoreTx = "SCORE: " + std::to_string(state->score);
             renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);

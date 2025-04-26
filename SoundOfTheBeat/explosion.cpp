@@ -1,8 +1,7 @@
 #include "explosion.h"
 
 Explosion::Explosion(unsigned int shader) {
-    float explosion[] =
-    {
+    float explosion[] = {
         -GEN_LIMIT, -GEN_LIMIT, 1.0,  0.0, 0.0,
         -GEN_LIMIT,  GEN_LIMIT, 1.0,  0.0, 1.0,
          GEN_LIMIT, -GEN_LIMIT, 1.0,  1.0, 0.0,

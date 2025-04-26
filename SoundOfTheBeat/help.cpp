@@ -16,11 +16,8 @@ void showHelp(GLFWwindow* window) {
     std::string text9 = "SWITCH TRACKS WITH LEFT/RIGHT ARROW KEYS.";
     std::string exitTx = "[ESC] BACK TO MENU";
 
-
-    //render loop
     glClearColor(0.0, 0.05, 0.0, 1.0);
-
-    double renderStart, renderTime;
+    double renderStart;
     while (true) {
         if (glfwWindowShouldClose(window)) break;
         renderStart = glfwGetTime();
