@@ -25,9 +25,8 @@ void showHelp(GLFWwindow* window) {
         renderStart = glfwGetTime();
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
             break;
-        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renderText(title, 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
@@ -46,10 +45,6 @@ void showHelp(GLFWwindow* window) {
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        //limit FPS
-        renderTime = glfwGetTime() - renderStart;
-        if (renderTime < FRAME_TIME) {
-            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
-        }
+        limitFPS(renderStart);
     }
 }

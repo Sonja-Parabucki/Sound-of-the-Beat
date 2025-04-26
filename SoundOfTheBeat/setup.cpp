@@ -163,3 +163,10 @@ void initVABO(const float* vertices, size_t verticesLength, unsigned int stride,
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
+
+
+void limitFPS(double renderStart) {
+    double renderTime = glfwGetTime() - renderStart;
+    if (renderTime < FRAME_TIME)
+        std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
+}

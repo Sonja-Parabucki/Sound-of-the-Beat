@@ -1,7 +1,5 @@
 #include "menu.h"
 
-
-
 Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName, int mode) {
     float wWidth = windowWidth();
     float wHeight = windowHeight();
@@ -27,35 +25,27 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
     while (next == -1) {
         renderStart = glfwGetTime();
 
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
             next = 0;
         }
-        if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
             next = 1;
         }
-        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
             next = 2;
         }
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
             mode = 0;
-
         }
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
             mode = 1;
         }
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
             if (iter == songs.begin()) iter = songs.end();
             iter--;
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
         }
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             iter++;
             if (iter == songs.end()) iter = songs.begin();
             std::this_thread::sleep_for(std::chrono::duration<double>(0.2));
@@ -84,15 +74,9 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
         
         renderText(highScoreTx + std::to_string(iter->second), 120, 150, 1.2, 1., 1., 1.);
 
-
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        //limit FPS
-        renderTime = glfwGetTime() - renderStart;
-        if (renderTime < FRAME_TIME) {
-            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
-        }
+        limitFPS(renderStart);
     }
 
     return Game{ mode, next, iter->first };

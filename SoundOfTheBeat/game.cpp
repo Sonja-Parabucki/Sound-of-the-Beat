@@ -431,13 +431,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void drawPause(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
+    double renderStart = glfwGetTime();
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         endGame = true;
         return;
     }
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-    {
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
         paused = false;
         glfwSetTime(state->time);
         return;
@@ -449,6 +448,8 @@ void drawPause(GLFWwindow* window) {
     renderText("[ESC] back to MENU", 120, wHeight / 2 - 80, 1, 1., 1., 1.);
     std::string scoreTx = "SCORE: " + std::to_string(state->score);
     renderText(scoreTx, 120, 150, 1.2, 1., 1., 1.);
+
+    limitFPS(renderStart);
 }
 
 
@@ -583,10 +584,10 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
 
     double renderStart, renderTime;
     while (!endGame) {
-        renderStart = glfwGetTime();
 
         if (paused) drawPause(window);
         else {
+            renderStart = glfwGetTime();
             state->song->setIsPaused(gameOver);
             
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -629,15 +630,14 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
             renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
             comboTx = 'x' + std::to_string(combo);
             renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
+
+            limitFPS(renderStart);
         }
         
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        //limit FPS
-        renderTime = glfwGetTime() - renderStart;
-        if (renderTime < FRAME_TIME)
-            std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
+        
     }
 
     glDeleteTextures(1, &logoTexture);

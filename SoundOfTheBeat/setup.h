@@ -28,6 +28,7 @@ unsigned int loadImageToTexture(const char* filePath);
 
 void initVABO(const float* vertices, size_t verticesLength, unsigned int stride, unsigned int* VAO, unsigned int* VBO, bool staticDraw);
 
+void limitFPS(double renderStart);
 
 unsigned int windowWidth();
 
