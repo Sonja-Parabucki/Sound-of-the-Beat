@@ -11,7 +11,7 @@ void showHelp(GLFWwindow* window) {
     std::string text3 = "Off-beat shots score zero. Miss a beat? That's -5 points!";
     std::string text4 = "It's game over if your score drops to 0, so best be careful. Also, watch out for bombs!";
     std::string text6 = "EASY MODE: All targets are white. Blast 'em with either mouse button.";
-    std::string text7 = "HARD MODE: Red targets = left-click. Blue targets = right-click. No mistakes!";
+    std::string text7 = "HARD MODE: Red targets = left-click. Green targets = right-click. No mistakes!";
     std::string text8 = "PRESS SPACE TO PAUSE.";
     std::string text9 = "SWITCH TRACKS WITH LEFT/RIGHT ARROW KEYS.";
     std::string exitTx = "[ESC] BACK TO MENU";
