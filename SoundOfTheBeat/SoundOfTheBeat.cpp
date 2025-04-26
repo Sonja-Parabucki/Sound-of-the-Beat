@@ -100,6 +100,9 @@ int main()
     unsigned int lightShader = createShader("light.vert", "light.frag");
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
+    Aim aim(basicTexShader);
+    Resources resources{ aim };
+
     startEngine();
     //game song
     irrklang::ISound* song;
@@ -136,7 +139,7 @@ int main()
         //start new game
         CameraPosition camera = CameraPosition{ glm::vec3(0.0f, 0.2f, Z_LIMIT), -90.0f, -2.0f };
         gameState = GameState{ song, 10, 0, gameInstance.mode, 0, {}, {}, beats, 0, bombs, 0, camera };
-        game(window, ballShader, texShader, basicTexShader, lightShader, &gameState, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str());
+        game(window, ballShader, texShader, lightShader, &gameState, resources, (IMG_FOLDER + gameInstance.selectedSongName + ".png").c_str());
         
         stopSong(song);
 

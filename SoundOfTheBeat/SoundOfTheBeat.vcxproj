@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aim.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="help.cpp" />
     <ClCompile Include="menu.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="song.cpp" />
     <ClCompile Include="SoundOfTheBeat.cpp" />
     <ClCompile Include="stb.cpp" />
+    <ClCompile Include="textures.cpp" />
     <ClCompile Include="textUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,15 +170,18 @@
     <None Include="tex.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aim.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="help.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="resources.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="song.h" />
     <ClInclude Include="stb.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="textures.h" />
     <ClInclude Include="textUtil.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

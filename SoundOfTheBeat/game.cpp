@@ -19,7 +19,6 @@ float aspectRatio;
 float lastX, lastY;
 float yaw, pitch;
 bool firstFrame;
-
 bool wasSpacePressed;
 
 bool won;
@@ -44,10 +43,6 @@ std::string messageTx;
 
 float random() {
     return -GEN_LIMIT + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (GEN_LIMIT *2)));
-}
-
-float random(float a, float b) {
-    return a + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (b-a)));
 }
 
 void setCombo() {
@@ -468,31 +463,12 @@ void drawPause(GLFWwindow* window) {
 }
 
 
-void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int basicTexShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
+void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int lightShader, GameState* gameState, Resources& resources, const char* texturePath) {
     
     Model modelBall("resources/model/ball.obj");
     Model modelBomb("resources/model/grenade.obj");
     Model modelTube("resources/model/tube.obj");
     Model modelTubeHor("resources/model/tubeH.obj");
-
-    float dim1 = 0.01;
-    float dim2 = 0.045;
-    float aim[] =
-    {
-        0.0f, -dim2, 0.0f,
-        0.0f, -dim1, 0.0f,
-
-        0.0f, dim2, 0.0f,
-        0.0f, dim1, 0.0f,
-
-        -dim2, 0.0f, 0.0f,
-        -dim1, 0.0f, 0.0f,
-
-        dim2, 0.0f, 0.0f,
-        dim1, 0.0f, 0.0f,
-    };
-    unsigned int VAOaim, VBOaim;
-    initVABO(aim, sizeof(aim), 3 * sizeof(float), &VAOaim, &VBOaim, true);
 
     float background[] =
     {   // X       Y    Z     S    T 
@@ -566,10 +542,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
-    
-    glUseProgram(basicTexShader);
-    glUniform1f(glGetUniformLocation(basicTexShader, "uAspectRatio"), aspectRatio);
-    glUseProgram(0);
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -609,7 +581,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.0, 0.0, 0.0, 1.0);
             drawBackground(texShader, VAObg, logoTexture, backgroundTexture);
-            drawAim(basicTexShader, VAOaim, VBOaim);
+            resources.aim.draw();
             drawLights(lightShader, modelTube, modelTubeHor);
 
             if (won || gameOver) {
@@ -642,8 +614,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     glDeleteTextures(1, &logoTexture);
     glDeleteTextures(1, &backgroundTexture);
     glDeleteTextures(1, &explosionTexture);
-    glDeleteBuffers(1, &VBOaim);
-    glDeleteVertexArrays(1, &VAOaim);
     glDeleteBuffers(1, &VBObg);
     glDeleteVertexArrays(1, &VAObg);
     glDeleteBuffers(1, &VBOexplosion);
