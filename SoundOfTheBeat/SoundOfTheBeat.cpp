@@ -1,6 +1,5 @@
 #include "menu.h"
 #include "game.h"
-#include "pause.h"
 #include "help.h"
 #include "textUtil.h"
 #include <map>
