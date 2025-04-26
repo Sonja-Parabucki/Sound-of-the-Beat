@@ -9,5 +9,4 @@ public:
 private:
 	unsigned int shader;
 	unsigned int VAO, VBO;
-
 };

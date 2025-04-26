@@ -48,7 +48,7 @@
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="textures.cpp">
+    <ClCompile Include="background.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="aim.cpp">
@@ -119,7 +119,7 @@
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="textures.h">
+    <ClInclude Include="background.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="aim.h">

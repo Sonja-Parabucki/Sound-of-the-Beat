@@ -101,7 +101,8 @@ int main()
     createLetterShader("letter.vert", "letter.frag", wWidth, wHeight);
 
     Aim aim(basicTexShader);
-    Resources resources{ aim };
+    Background background(texShader);
+    Resources resources{ aim, background };
 
     startEngine();
     //game song

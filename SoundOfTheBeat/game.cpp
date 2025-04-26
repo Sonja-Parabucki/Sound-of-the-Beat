@@ -6,8 +6,6 @@
 #define INFLATION_SPEED 0.6
 #define EXPLOSION_SPEED 0.05
 #define r 0.12
-#define LIMIT 0.75
-#define GEN_LIMIT 0.35
 #define BALL_GEN_DELTA 2.5
 #define BOMB_GEN_DELTA BALL_GEN_DELTA - 0.5
 
@@ -304,25 +302,6 @@ void drawLights(unsigned int shader, Model& modelTube, Model& modelTubeHor) {
     glUseProgram(0);
 }
 
-void drawBackground(unsigned int shader, unsigned int VAO, unsigned int logoTexture, unsigned int backgroundTexture) {
-    if (logoTexture == 0 || backgroundTexture == 0) return;
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glActiveTexture(GL_TEXTURE0);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    glBindTexture(GL_TEXTURE_2D, logoTexture);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
-    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
 
 void drawExplosion(unsigned int shader, unsigned int VAO, unsigned int texture) {
     glUseProgram(shader);
@@ -340,26 +319,6 @@ void drawExplosion(unsigned int shader, unsigned int VAO, unsigned int texture) 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
-void drawAim(unsigned int shader, unsigned int VAO, unsigned int VBO) {
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glUniform3f(glGetUniformLocation(shader, "uCol"), 0., 0., 0.3);
-    glLineWidth(4);
-    for (int i = 0; i < 8; i += 2)
-        glDrawArrays(GL_LINES, i, 2);
-
-    glUniform3f(glGetUniformLocation(shader, "uCol"), 0.85, 0.9, 0.3);
-    glLineWidth(8);
-    for (int i = 0; i < 8; i += 2)
-        glDrawArrays(GL_LINES, i, 2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -470,28 +429,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     Model modelTube("resources/model/tube.obj");
     Model modelTubeHor("resources/model/tubeH.obj");
 
-    float background[] =
-    {   // X       Y    Z     S    T 
-        //logo
-        -LIMIT, -LIMIT, 0,  0.0, 0.0,
-        -LIMIT,  LIMIT, 0,  0.0, 1.0,
-         LIMIT, -LIMIT, 0,  1.0, 0.0,
-         LIMIT,  LIMIT, 0,  1.0, 1.0,
-        //left side
-        -LIMIT, -LIMIT, 0.0,     0.0, 0.0,
-        -LIMIT,  LIMIT, 0.0,     0.0, 1.0,
-        -LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
-        -LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
-        //right side
-         LIMIT, -LIMIT, 0.0,     0.0, 0.0,
-         LIMIT,  LIMIT, 0.0,     0.0, 1.0,
-         LIMIT, -LIMIT, Z_LIMIT, 1.0, 0.0,
-         LIMIT,  LIMIT, Z_LIMIT, 1.0, 1.0,
-
-    };
-    unsigned int VAObg, VBObg;
-    initVABO(background, sizeof(background), 5 * sizeof(float), &VAObg, &VBObg, true);
-
     float explosion[] =
     {
         -GEN_LIMIT, -GEN_LIMIT, 1.0,  0.0, 0.0,
@@ -533,15 +470,8 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     glUseProgram(0);
 
     //textures
-    unsigned int logoTexture = loadImageToTexture(texturePath);
-    unsigned int backgroundTexture = loadImageToTexture("resources/img/back.png");
+    resources.background.setLogoTexture(texturePath);
     unsigned int explosionTexture = loadImageToTexture("resources/img/explosion.png");
-
-    glUseProgram(texShader);
-    glUniform1i(glGetUniformLocation(texShader, "uTex"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-    glUseProgram(0);
 
     //options
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -580,7 +510,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
             
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.0, 0.0, 0.0, 1.0);
-            drawBackground(texShader, VAObg, logoTexture, backgroundTexture);
+            resources.background.draw(projectionView);
             resources.aim.draw();
             drawLights(lightShader, modelTube, modelTubeHor);
 
@@ -611,11 +541,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
         glfwSwapBuffers(window);
         glfwPollEvents();   
     }
-    glDeleteTextures(1, &logoTexture);
-    glDeleteTextures(1, &backgroundTexture);
     glDeleteTextures(1, &explosionTexture);
-    glDeleteBuffers(1, &VBObg);
-    glDeleteVertexArrays(1, &VAObg);
     glDeleteBuffers(1, &VBOexplosion);
     glDeleteVertexArrays(1, &VAOexplosion);
 }

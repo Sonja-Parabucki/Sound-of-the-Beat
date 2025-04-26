@@ -17,6 +17,9 @@
 #include "stb.h"
 #include "song.h"
 
+#define LIMIT 0.75
+#define GEN_LIMIT 0.35
+
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
 
