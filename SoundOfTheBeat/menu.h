@@ -2,4 +2,4 @@
 #include "textUtil.h"
 #include <map>
 
-Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName);
+Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string selectedSongName, int mode);

@@ -30,9 +30,6 @@
     <ClCompile Include="setup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pause.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,10 +51,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="basic.frag">
+    <None Include="basicTex.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basic.vert">
+    <None Include="basicTex.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="ball.vert">
@@ -93,9 +90,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pause.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
