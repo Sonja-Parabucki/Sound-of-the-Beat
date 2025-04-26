@@ -207,22 +207,6 @@ void generateNewObjects() {
 }
 
 
-void drawBombs(unsigned int shader, Model& object) {
-    glUseProgram(shader);
-    setColor(shader, 'g');
-
-    glUniform3f(glGetUniformLocation(shader, "uCameraAt"), cameraAt[0], cameraAt[1], cameraAt[2]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    for (const auto& bomb : state->bombs) {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, bomb.pos);
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-        object.Draw(shader);
-    }
-    glUseProgram(0);
-}
-
 void drawLights(unsigned int shader, Model& modelTube, Model& modelTubeHor) {
     glUseProgram(shader);
     glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
@@ -348,10 +332,8 @@ void drawPause(GLFWwindow* window) {
 
 void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, GameState* gameState, Resources& resources, const char* texturePath) {
     
-    Model modelBomb("resources/model/grenade.obj");
     Model modelTube("resources/model/tube.obj");
     Model modelTubeHor("resources/model/tubeH.obj");
-
     
     //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
@@ -427,7 +409,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, Gam
                 updateBombs();
             }
             resources.ballModel.draw(state->balls, cameraAt, projectionView, state->mode);
-            drawBombs(shader, modelBomb);
+            resources.bombModel.draw(state->bombs, cameraAt, projectionView);
             if (explosionPos[0] > -1) {
                 if (explosionInflation < 1.0)
                     explosionInflation += EXPLOSION_SPEED;
