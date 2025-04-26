@@ -24,6 +24,8 @@ bool won;
 bool gameOver;
 glm::vec3 explosionPos;
 float explosionInflation;
+bool paused;
+bool endGame;
 
 glm::vec3 lightPosition = glm::vec3(LIMIT, LIMIT, 0.0f);
 
@@ -280,6 +282,90 @@ void drawBombs(unsigned int shader, Model& object) {
     glUseProgram(0);
 }
 
+void drawLights(unsigned int shader, Model& modelTube, Model& modelTubeHor) {
+    glUseProgram(shader);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
+
+    glm::mat4 modelLight;
+    float lightPosX = LIMIT;
+    float lightPosY = LIMIT;
+    for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
+        for (int j = 0; j < 2; j++, lightPosY = -lightPosY) {
+            lightPosition = glm::vec3(lightPosX, lightPosY, 0.0f);
+            modelLight = glm::mat4(1.0f);
+            modelLight = glm::translate(modelLight, lightPosition);
+            modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
+            modelTube.Draw(shader);
+        }
+        modelLight = glm::mat4(1.0f);
+        modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
+        modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
+        modelTubeHor.Draw(shader);
+    }
+    glUseProgram(0);
+}
+
+void drawBackground(unsigned int shader, unsigned int VAO, unsigned int logoTexture, unsigned int backgroundTexture) {
+    if (logoTexture == 0 || backgroundTexture == 0) return;
+    glUseProgram(shader);
+    glBindVertexArray(VAO);
+    glActiveTexture(GL_TEXTURE0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
+
+    glBindTexture(GL_TEXTURE_2D, logoTexture);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void drawExplosion(unsigned int shader, unsigned int VAO, unsigned int texture) {
+    glUseProgram(shader);
+    glBindVertexArray(VAO);
+    glActiveTexture(GL_TEXTURE0);
+
+    if (explosionInflation < 1.0)
+        explosionInflation += EXPLOSION_SPEED;
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(explosionPos));
+    model = glm::scale(model, glm::vec3(explosionInflation));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void drawAim(unsigned int shader, unsigned int VAO, unsigned int VBO) {
+    glUseProgram(shader);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glUniform3f(glGetUniformLocation(shader, "uCol"), 0., 0., 0.3);
+    glLineWidth(4);
+    for (int i = 0; i < 8; i += 2)
+        glDrawArrays(GL_LINES, i, 2);
+
+    glUniform3f(glGetUniformLocation(shader, "uCol"), 0.85, 0.9, 0.3);
+    glLineWidth(8);
+    for (int i = 0; i < 8; i += 2)
+        glDrawArrays(GL_LINES, i, 2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
 
 void updateProjectionAndView() {
     glm::vec3 direction = glm::vec3(
@@ -344,8 +430,29 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     updateProjectionAndView();
 }
 
+void drawPause(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        endGame = true;
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    {
+        paused = false;
+        glfwSetTime(state->time);
+        return;
+    }
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.05, 0.0, 0.0, 1.0);
+    renderText("GAME PAUSED", 100, wHeight - 200, 2, 0.93, 0.94, 0.78);
+    renderText("[ENTER] to CONTINUE", 120, wHeight / 2, 1, 1., 1., 1.);
+    renderText("[ESC] back to MENU", 120, wHeight / 2 - 80, 1, 1., 1., 1.);
+    std::string scoreTx = "SCORE: " + std::to_string(state->score);
+    renderText(scoreTx, 120, 150, 1.2, 1., 1., 1.);
+}
 
-int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int basicTexShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
+
+void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsigned int basicTexShader, unsigned int lightShader, GameState* gameState, const char* texturePath) {
     
     Model modelBall("resources/model/ball.obj");
     Model modelBomb("resources/model/grenade.obj");
@@ -431,7 +538,6 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
 
     //shader light
     glUseProgram(lightShader);
-    glm::mat4 modelLight = glm::mat4(1.0f);
     glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
     glUseProgram(0);
 
@@ -459,173 +565,79 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glEnable(GL_DEPTH_TEST);
 
     firstFrame = true;
+    paused = false;
 
     //setting the game state
     state = gameState;
     glfwSetTime(gameState->time);
     setCombo();
-    int next = 0;
-    bool endGame = false;
+    endGame = false;
     won = false;
     gameOver = false;
     explosionPos = glm::vec3(-1.0);
+
     std::string scoreTx;
     float scoreScaling = 1.0f;
     std::string comboTx;
     std::string continueTx = "press [SPACE]";
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    resumeSong(state->song);
-
-    //render loop
     double renderStart, renderTime;
     while (!endGame) {
         renderStart = glfwGetTime();
 
-        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        {
-            if (won || gameOver) {
-                next = 0;   //return to meni
-            }
-            else {
-                pauseSong(state->song);
-                gameState->time = glfwGetTime();
-                gameState->camera.pos = cameraAt;
-                gameState->camera.pitch = pitch;
-                gameState->camera.yaw = yaw;
-                next = 1;   //pause game
-            }
-            endGame = true;
-            break;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        {
-            glEnable(GL_DEPTH_TEST);
-        }
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        {
-            glDisable(GL_DEPTH_TEST);
-        }
-
-        processInput(window);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        //background
-        if (logoTexture != 0 && backgroundTexture != 0) {
-            glUseProgram(texShader);
-            glBindVertexArray(VAObg);
-            glActiveTexture(GL_TEXTURE0);
-            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-            glUniformMatrix4fv(glGetUniformLocation(texShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-            glBindTexture(GL_TEXTURE_2D, logoTexture);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        if (paused) drawPause(window);
+        else {
+            state->song->setIsPaused(gameOver);
             
-            glBindTexture(GL_TEXTURE_2D, backgroundTexture);
-            glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-            glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindVertexArray(0);
-            glUseProgram(0);
-        }
-
-        //draw aim
-        glUseProgram(basicTexShader);
-        glBindVertexArray(VAOaim);
-        glBindBuffer(GL_ARRAY_BUFFER, VBOaim);
-
-        glUniform3f(aimColLoc, 0., 0., 0.3);
-        glLineWidth(4);
-        for (int i = 0; i < sizeof(aim)/3; i += 2)
-            glDrawArrays(GL_LINES, i, 2);
-
-        glUniform3f(aimColLoc, 0.85, 0.9, 0.3);
-        glLineWidth(8);
-        for (int i = 0; i < sizeof(aim) / 3; i += 2)
-            glDrawArrays(GL_LINES, i, 2);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        glUseProgram(0);
-        
-
-        //draw light tubes
-        glUseProgram(lightShader);
-        glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-        float lightPosX = LIMIT;
-        float lightPosY = LIMIT;
-        for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
-            for (int j = 0; j < 2; j++, lightPosY = -lightPosY) {
-                lightPosition = glm::vec3(lightPosX, lightPosY, 0.0f);
-                modelLight = glm::mat4(1.0f);
-                modelLight = glm::translate(modelLight, lightPosition);
-                modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(glGetUniformLocation(lightShader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-                modelTube.Draw(lightShader);
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                if (won || gameOver) endGame = true;
+                else {
+                    paused = true;
+                    pauseSong(state->song);
+                    gameState->time = glfwGetTime();
+                }
             }
-            modelLight = glm::mat4(1.0f);
-            modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
-            modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            glUniformMatrix4fv(glGetUniformLocation(lightShader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-            modelTubeHor.Draw(lightShader);
+            processInput(window);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.0, 0.0, 0.0, 1.0);
+            drawBackground(texShader, VAObg, logoTexture, backgroundTexture);
+            drawAim(basicTexShader, VAOaim, VBOaim);
+            drawLights(lightShader, modelTube, modelTubeHor);
+
+            if (won || gameOver) {
+                renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
+                renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
+                scoreScaling = 1.5f;
+            }
+
+            if (!gameOver)
+                generateNewObjects();
+
+            if (state->score > 0 || explosionPos[0] > -1) {
+                updateBalls();
+                updateBombs();
+            }
+
+            if (explosionPos[0] > -1)
+                drawExplosion(texShader, VAOexplosion, explosionTexture);
+
+            drawBalls(shader, modelBall);
+            drawBombs(shader, modelBomb);
+
+            scoreTx = "SCORE: " + std::to_string(state->score);
+            renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
+            comboTx = 'x' + std::to_string(combo);
+            renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
         }
-        glUseProgram(0);
-
-        if (won || gameOver) {
-            renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
-            renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
-            scoreScaling = 1.5f;
-        }
-
-        if (!gameOver) {
-            generateNewObjects();
-        }
-        if (state->score > 0 || explosionPos[0] > -1) {
-            updateBalls();
-            updateBombs();
-        }
-
-        if (explosionPos[0] > -1) {
-            glUseProgram(texShader);
-            glBindVertexArray(VAOexplosion);
-            glActiveTexture(GL_TEXTURE0);
-
-            if (explosionInflation < 1.0)
-                explosionInflation += EXPLOSION_SPEED;
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(explosionPos));
-            model = glm::scale(model, glm::vec3(explosionInflation));
-            glUniformMatrix4fv(glGetUniformLocation(texShader, "uM"), 1, GL_FALSE, glm::value_ptr(model));
-
-            glBindTexture(GL_TEXTURE_2D, explosionTexture);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindVertexArray(0);
-            glUseProgram(0);
-        }
-
-        drawBalls(shader, modelBall);
-        drawBombs(shader, modelBomb);
-
-        scoreTx = "SCORE: " + std::to_string(state->score);
-        renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
-
-        comboTx = 'x' + std::to_string(combo);
-        renderText(comboTx, 20, 10, 0.8, 1.0, 0.5, 0.);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         //limit FPS
         renderTime = glfwGetTime() - renderStart;
-        if (renderTime < FRAME_TIME) {
+        if (renderTime < FRAME_TIME)
             std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
-        }
     }
 
     glDeleteTextures(1, &logoTexture);
@@ -637,6 +649,4 @@ int game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsign
     glDeleteVertexArrays(1, &VAObg);
     glDeleteBuffers(1, &VBOexplosion);
     glDeleteVertexArrays(1, &VAOexplosion);
-
-    return next;
 }
