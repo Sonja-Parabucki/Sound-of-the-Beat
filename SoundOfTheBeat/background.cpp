@@ -24,7 +24,7 @@ Background::Background(unsigned int shader) {
     initVABO(background, sizeof(background), 5 * sizeof(float), &this->VAO, &this->VBO, true);
 
     this->backgroundTexture = loadImageToTexture("resources/img/back.png");
-
+    this->logoTexture = 0;
     auto identity = glm::mat4(1.0f);
     glUseProgram(shader);
     glUniform1i(glGetUniformLocation(shader, "uTex"), 0);

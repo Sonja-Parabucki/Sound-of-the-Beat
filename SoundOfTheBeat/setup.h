@@ -19,6 +19,10 @@
 
 #define LIMIT 0.75
 #define GEN_LIMIT 0.35
+#define SPEED 0.2
+#define BOMB_SPEED SPEED + 0.05
+#define INFLATION_SPEED 0.6
+#define EXPLOSION_SPEED 0.05
 
 const double FPS = 60.0;
 const double FRAME_TIME = 1.0 / FPS;
