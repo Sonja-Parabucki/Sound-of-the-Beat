@@ -149,6 +149,7 @@
     <ClCompile Include="explosion.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="help.cpp" />
+    <ClCompile Include="light.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="explosion.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="help.h" />
+    <ClInclude Include="lights.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />

@@ -4,6 +4,7 @@
 #include "explosion.h"
 #include "ball.h"
 #include "bomb.h"
+#include "lights.h"
 
 struct Resources {
     Aim& aim;
@@ -11,4 +12,5 @@ struct Resources {
     BallModel& ballModel;
     BombModel& bombModel;
     Explosion& explosion;
+    Lights& lights;
 };

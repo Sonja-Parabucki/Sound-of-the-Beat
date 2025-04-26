@@ -29,7 +29,6 @@ glm::vec3 cameraUp;
 glm::mat4 projectionView;
 glm::mat4 view;
 glm::mat4 projection;
-glm::mat4 model;
 std::string messageTx;
 
 
@@ -192,7 +191,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
-
 void generateNewObjects() {
     double t = glfwGetTime();
     if ((state->beatTimes.size() > state->lastBeat) && (state->beatTimes.at(state->lastBeat) - t < BALL_GEN_DELTA)) {
@@ -206,30 +204,6 @@ void generateNewObjects() {
     }
 }
 
-
-void drawLights(unsigned int shader, Model& modelTube, Model& modelTubeHor) {
-    glUseProgram(shader);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-
-    glm::mat4 modelLight;
-    float lightPosX = LIMIT;
-    float lightPosY = LIMIT;
-    for (int i = 0; i < 2; i++, lightPosX = -lightPosX) {
-        for (int j = 0; j < 2; j++, lightPosY = -lightPosY) {
-            modelLight = glm::mat4(1.0f);
-            modelLight = glm::translate(modelLight, glm::vec3(lightPosX, lightPosY, 0.0f));
-            modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-            modelTube.Draw(shader);
-        }
-        modelLight = glm::mat4(1.0f);
-        modelLight = glm::translate(modelLight, glm::vec3(LIMIT, lightPosX, 0.0f));
-        modelLight = glm::rotate(modelLight, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uM"), 1, GL_FALSE, glm::value_ptr(modelLight));
-        modelTubeHor.Draw(shader);
-    }
-    glUseProgram(0);
-}
 
 void updateProjectionAndView() {
     glm::vec3 direction = glm::vec3(
@@ -330,15 +304,11 @@ void drawPause(GLFWwindow* window) {
 }
 
 
-void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, GameState* gameState, Resources& resources, const char* texturePath) {
-    
-    Model modelTube("resources/model/tube.obj");
-    Model modelTubeHor("resources/model/tubeH.obj");
-    
+void game(GLFWwindow* window, GameState* gameState, Resources& resources, const char* texturePath) {
+
     //aspect-ratio of the window
     glfwGetFramebufferSize(window, &wWidth, &wHeight);
     aspectRatio = (float)wWidth / wHeight;
-
     //camera position
     cameraUp = glm::vec3(0.0f, 1.0f, 0.f);
     cameraAt = gameState->camera.pos;
@@ -346,14 +316,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, Gam
     yaw = gameState->camera.yaw;
     updateProjectionAndView();
 
-    model = glm::mat4(1.0f);
-
-    //shader light
-    glUseProgram(lightShader);
-    glUniformMatrix4fv(glGetUniformLocation(lightShader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
-    glUseProgram(0);
-
-    //textures
     resources.background.setLogoTexture(texturePath);
 
     //options
@@ -393,10 +355,7 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, Gam
             
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.0, 0.0, 0.0, 1.0);
-            resources.background.draw(projectionView);
-            resources.aim.draw();
-            drawLights(lightShader, modelTube, modelTubeHor);
-
+            
             if (won || gameOver) {
                 renderText(messageTx, 100, wHeight - 200, 2, 1, 1, 1);
                 renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
@@ -408,6 +367,9 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, Gam
                 updateBalls();
                 updateBombs();
             }
+            resources.background.draw(projectionView);
+            resources.aim.draw();
+            resources.lights.draw(projectionView);
             resources.ballModel.draw(state->balls, cameraAt, projectionView, state->mode);
             resources.bombModel.draw(state->bombs, cameraAt, projectionView);
             if (explosionPos[0] > -1) {
@@ -415,7 +377,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int lightShader, Gam
                     explosionInflation += EXPLOSION_SPEED;
                 resources.explosion.draw(explosionPos, explosionInflation);
             }
-
             scoreTx = "SCORE: " + std::to_string(state->score);
             renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
             comboTx = 'x' + std::to_string(combo);
