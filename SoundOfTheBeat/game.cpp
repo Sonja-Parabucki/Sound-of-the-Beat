@@ -538,7 +538,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     updateProjectionAndView();
 
     model = glm::mat4(1.0f);
-
     //shaders
     glUseProgram(shader);
     setColor(shader, 'w');
@@ -570,7 +569,6 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     
     glUseProgram(basicTexShader);
     glUniform1f(glGetUniformLocation(basicTexShader, "uAspectRatio"), aspectRatio);
-    auto aimColLoc = glGetUniformLocation(basicTexShader, "uCol");
     glUseProgram(0);
 
     //options
@@ -598,8 +596,9 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
     std::string comboTx;
     std::string continueTx = "press [SPACE]";
 
-    double renderStart, renderTime;
+    double renderStart;
     while (!endGame) {
+        if (glfwWindowShouldClose(window)) break;
         processInput(window);
 
         if (paused) drawPause(window);
@@ -618,20 +617,16 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
                 renderText(continueTx, 100, wHeight - 300, 1, 1, 1, 1);
                 scoreScaling = 1.5f;
             }
-
             if (!gameOver)
                 generateNewObjects();
-
             if (state->score > 0 || explosionPos[0] > -1) {
                 updateBalls();
                 updateBombs();
             }
-
-            if (explosionPos[0] > -1)
-                drawExplosion(texShader, VAOexplosion, explosionTexture);
-
             drawBalls(shader, modelBall);
             drawBombs(shader, modelBomb);
+            if (explosionPos[0] > -1)
+                drawExplosion(texShader, VAOexplosion, explosionTexture);
 
             scoreTx = "SCORE: " + std::to_string(state->score);
             renderText(scoreTx, 20, 50, scoreScaling, 1.0, 1.0, 1.0);
@@ -640,13 +635,10 @@ void game(GLFWwindow* window, unsigned int shader, unsigned int texShader, unsig
 
             limitFPS(renderStart);
         }
-        
+
         glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        
+        glfwPollEvents();   
     }
-
     glDeleteTextures(1, &logoTexture);
     glDeleteTextures(1, &backgroundTexture);
     glDeleteTextures(1, &explosionTexture);

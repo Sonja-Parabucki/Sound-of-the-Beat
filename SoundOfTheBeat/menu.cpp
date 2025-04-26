@@ -23,6 +23,7 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
     int next = -1;
     double renderStart, renderTime;
     while (next == -1) {
+        if (glfwWindowShouldClose(window)) break;
         renderStart = glfwGetTime();
 
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {

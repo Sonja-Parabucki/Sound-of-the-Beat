@@ -22,6 +22,7 @@ void showHelp(GLFWwindow* window) {
 
     double renderStart, renderTime;
     while (true) {
+        if (glfwWindowShouldClose(window)) break;
         renderStart = glfwGetTime();
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)

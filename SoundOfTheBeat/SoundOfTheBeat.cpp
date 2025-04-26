@@ -109,6 +109,7 @@ int main()
     Game gameInstance;
     gameInstance.mode = 1;
     while (true) {
+        if (glfwWindowShouldClose(window)) break;
         gameInstance = menu(window, songs, selectedSongName, gameInstance.mode);
         selectedSongName = gameInstance.selectedSongName;
         if (gameInstance.next == 0) {
