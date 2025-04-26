@@ -10,7 +10,7 @@ Explosion::Explosion(unsigned int shader) {
     };
     initVABO(explosion, sizeof(explosion), 5 * sizeof(float), &VAO, &VBO, true);
     texture = loadImageToTexture("resources/img/explosion.png");
- 
+    this->shader = shader;
     auto identity = glm::mat4(1.0f);
     glUseProgram(shader);
     glUniform1i(glGetUniformLocation(shader, "uTex"), 0);
@@ -30,8 +30,6 @@ void Explosion::draw(glm::vec3 explosionPos, float explosionInflation) {
     glBindVertexArray(VAO);
     glActiveTexture(GL_TEXTURE0);
 
-    if (explosionInflation < 1.0)
-        explosionInflation += EXPLOSION_SPEED;
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, explosionPos);
     model = glm::scale(model, glm::vec3(explosionInflation));

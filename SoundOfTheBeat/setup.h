@@ -37,6 +37,8 @@ void initVABO(const float* vertices, size_t verticesLength, unsigned int stride,
 
 void limitFPS(double renderStart);
 
+void setColor(unsigned int shader, char color);
+
 unsigned int windowWidth();
 
 unsigned int windowHeight();

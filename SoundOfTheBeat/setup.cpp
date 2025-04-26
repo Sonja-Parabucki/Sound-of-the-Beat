@@ -170,3 +170,31 @@ void limitFPS(double renderStart) {
     if (renderTime < FRAME_TIME)
         std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME - renderTime));
 }
+
+void setColor(unsigned int shader, char color) {
+    switch (color) {
+    case 'r': {
+        glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+        glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.2f, 0.f, 0.f);
+        glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.7f, 0.6f, 0.6f);
+        break;
+    }
+    case 'b': {
+        glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+        glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.14f, 0.34f, 0.0f);
+        glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.5f, 0.5f, 0.5f);
+        break;
+    }
+    case 'g': {
+        glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.0f, 0.0f, 0.0f);
+        glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.1f, 0.1f, 0.1f);
+        glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.33f, 0.33f, 0.35f);
+        break;
+    }
+    default: {
+        glUniform3f(glGetUniformLocation(shader, "material.ambient"), 0.01f, 0.01f, 0.01f);
+        glUniform3f(glGetUniformLocation(shader, "material.diffuse"), 0.34f, 0.35f, 0.15f);
+        glUniform3f(glGetUniformLocation(shader, "material.specular"), 0.2f, 0.2f, 0.2f);
+    }
+    }
+}

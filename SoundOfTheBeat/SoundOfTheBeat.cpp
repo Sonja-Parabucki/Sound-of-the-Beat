@@ -102,8 +102,9 @@ int main()
 
     Aim aim(basicTexShader);
     Background background(texShader);
+    BallModel ballModel(ballShader);
     Explosion explosion(texShader);
-    Resources resources{ aim, background, explosion };
+    Resources resources{ aim, background, ballModel, explosion };
 
     startEngine();
     //game song
