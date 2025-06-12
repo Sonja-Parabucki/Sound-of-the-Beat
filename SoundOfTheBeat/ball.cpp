@@ -28,7 +28,7 @@ void BallModel::draw(const std::vector<Ball>& balls, glm::vec3 cameraAt, glm::ma
     glUniformMatrix4fv(glGetUniformLocation(shader, "uPV"), 1, GL_FALSE, glm::value_ptr(projectionView));
 
     for (const auto& ball : balls) {
-        if (mode == 1) {
+        if (mode > 0) {
             if (ball.red) setColor(shader, 'r');
             else setColor(shader, 'b');
         }

@@ -5,6 +5,8 @@
 #define BALL_GEN_DELTA 2.5
 #define BOMB_GEN_DELTA BALL_GEN_DELTA - 0.5
 
+double speed, bombSpeed;
+
 GameState* state;
 int combo = 1;
 int wWidth, wHeight;
@@ -69,7 +71,7 @@ void setGameOver(bool isExplosion = false) {
 void generateBall(int beatInd) {
     if (beatInd >= state->beatTimes.size()) return;
     Ball ball{ glm::vec3(random(), random(), 0.f), state->beatTimes.at(beatInd), false, 1};
-    if (state->mode == 1) ball.red = ball.pos[0] <= 0;
+    if (state->mode > 0) ball.red = ball.pos[0] <= 0;
     state->balls.push_back(ball);
 }
 
@@ -80,7 +82,7 @@ void generateBomb() {
 
 void updateBalls() {
     for (auto it = state->balls.begin(); it != state->balls.end();) {
-        it->pos[2] += SPEED;
+        it->pos[2] += speed;
         
         if (it->pos[2] >= Z_LIMIT * 0.95 && !it->hit) {   // => miss
             it->hit = true;
@@ -102,7 +104,7 @@ void updateBalls() {
 
 void updateBombs() {
     for (auto it = state->bombs.begin(); it != state->bombs.end();) {
-        it->pos[2] += BOMB_SPEED;
+        it->pos[2] += bombSpeed;
         if (it->pos[2] > Z_LIMIT)   //fell off from the screen
             it = state->bombs.erase(it);
         else ++it; 
@@ -148,7 +150,7 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
     for (auto it = state->balls.begin(); it != state->balls.end(); ++it) {
         if (it->hit) continue;
         
-        if (state->mode == 1 && it->red != leftClick)
+        if (state->mode > 0 && it->red != leftClick)
             continue;
 
         if (isTouching(it->pos, rayWorld)) {
@@ -326,6 +328,9 @@ void game(GLFWwindow* window, GameState* gameState, Resources& resources, const 
     gameOver = false;
     paused = false;
     explosionPos = glm::vec3(-1.0);
+
+    speed = 0.2 + state->mode * 0.1;
+    bombSpeed = speed + 0.05;
 
     std::string scoreTx;
     float scoreScaling = 1.0f;

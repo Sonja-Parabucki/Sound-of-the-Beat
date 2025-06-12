@@ -9,7 +9,8 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
     std::string helpTx = "ow to play";
     std::string exitTx = "uit";
     std::string mode1Tx = "[1] Easy";
-    std::string mode2Tx = "[2] Hard";
+    std::string mode2Tx = "[2] Normal";
+    std::string mode3Tx = "[3] Hard";
     std::string highScoreTx = "HIGH SCORE: ";
 
     std::map<std::string, int>::iterator iter = songs.begin();
@@ -41,6 +42,9 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
         if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
             mode = 1;
         }
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+            mode = 2;
+        }
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
             if (iter == songs.begin()) iter = songs.end();
             iter--;
@@ -62,13 +66,25 @@ Game menu(GLFWwindow* window, std::map<std::string, int> songs, std::string sele
         renderText("[Q]", 120, wHeight / 2 - 200, 1, 0.93, 0.94, 0.78);
         renderText(exitTx, 172, wHeight / 2 - 200, 1, 1., 1., 1.);
 
-        if (mode == 0) {
-            renderText(mode1Tx, wWidth - 400, 200, 0.8, 1., 1., 1.);
-            renderText(mode2Tx, wWidth - 400, 150, 0.8, 0.5, 0.5, 0.5);
-        }
-        else {
-            renderText(mode1Tx, wWidth - 400, 200, 0.8, 0.5, 0.5, 0.5);
-            renderText(mode2Tx, wWidth - 400, 150, 0.8, 1., 1., 1.);
+        switch (mode) {
+            case 0: {
+                renderText(mode1Tx, wWidth - 400, 250, 0.8, 1., 1., 1.);
+                renderText(mode2Tx, wWidth - 400, 200, 0.8, 0.5, 0.5, 0.5);
+                renderText(mode3Tx, wWidth - 400, 150, 0.8, 0.5, 0.5, 0.5);
+                break;
+            }
+            case 1: {
+                renderText(mode1Tx, wWidth - 400, 250, 0.8, 0.5, 0.5, 0.5);
+                renderText(mode2Tx, wWidth - 400, 200, 0.8, 1., 1., 1.);
+                renderText(mode3Tx, wWidth - 400, 150, 0.8, 0.5, 0.5, 0.5);
+                break;
+            }
+            case 2: {
+                renderText(mode1Tx, wWidth - 400, 250, 0.8, 0.5, 0.5, 0.5);
+                renderText(mode2Tx, wWidth - 400, 200, 0.8, 0.5, 0.5, 0.5);
+                renderText(mode3Tx, wWidth - 400, 150, 0.8, 1., 1., 1.);
+                break;
+            }
         }
 
         renderText("[<<] " + iter->first + " [>>]", 120, wHeight / 2 + 100, 1, 0.84, 0.85, 0.94);
