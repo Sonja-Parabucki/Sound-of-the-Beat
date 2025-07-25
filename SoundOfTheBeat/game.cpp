@@ -155,7 +155,7 @@ bool checkShot(glm::vec3 rayWorld, bool leftClick) {
 
         if (isTouching(it->pos, rayWorld)) {
             double t = glfwGetTime();
-            if (abs(t - it->timeToHit) < 0.5) {
+            if (abs(t - it->timeToHit) < 1.5) {
                 state->streak += 1;
                 setCombo();
                 state->score += 2 * combo;
